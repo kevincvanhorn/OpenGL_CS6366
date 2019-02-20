@@ -1,2 +1,5 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(391,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (Asg_00.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.cpp
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\shader.h(51): warning C4101: 'info_log': unreferenced local variable
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(391): warning C4715: 'LoadModel': not all control paths return a value
   Asg_01.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\x64\Debug\Asg_01.exe
