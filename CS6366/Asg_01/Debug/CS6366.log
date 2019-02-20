@@ -1,0 +1,19 @@
+﻿  helloworld.cpp
+helloworld.obj : error LNK2019: unresolved external symbol _glewInit@0 referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwInit referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwTerminate referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwWindowHint referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwCreateWindow referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwWindowShouldClose referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwSetWindowShouldClose referenced in function "void __cdecl key_callback(struct GLFWwindow *,int,int,int,int)" (?key_callback@@YAXPAUGLFWwindow@@HHHH@Z)
+helloworld.obj : error LNK2019: unresolved external symbol _glfwGetFramebufferSize referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwPollEvents referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwSetKeyCallback referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwMakeContextCurrent referenced in function _main
+helloworld.obj : error LNK2019: unresolved external symbol _glfwSwapBuffers referenced in function _main
+helloworld.obj : error LNK2001: unresolved external symbol _glewExperimental
+C:\Users\Kevin VanHorn\Desktop\Graphics\OPENGL\nanogui\lib\nanogui.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Kevin VanHorn\Desktop\Graphics\OPENGL\glew\lib\Release\x64\glew32.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Kevin VanHorn\Desktop\Graphics\OPENGL\glew\lib\Release\x64\glew32s.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Kevin VanHorn\Desktop\Graphics\OPENGL\glfw\lib-vc2015\glfw3.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\Debug\Asg_00.exe : fatal error LNK1120: 13 unresolved externals

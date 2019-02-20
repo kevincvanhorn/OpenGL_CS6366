@@ -1,0 +1,10 @@
+﻿  main.cpp
+c:\users\kevin vanhorn\desktop\graphics\asg00_source\code\shader.h(51): warning C4101: 'info_log': unreferenced local variable
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Generating code
+  2316 of 2316 functions (100.0%) were compiled.
+    2305 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\x64\Release\vc120.pdb'; linking object as if no debug info
+  CS6366.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\x64\Release\Asg_00.exe
