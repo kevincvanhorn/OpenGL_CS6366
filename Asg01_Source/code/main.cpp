@@ -77,7 +77,7 @@ GUI_DOUBLE* gui_FarPlane;
 Color colObject(0.5f, 0.5f, 0.7f, 1.f);
 double dPositionX = 0.0;
 double dPositionY = 0.0;
-double dPositionZ = 0.0;
+double dPositionZ = -10.0;
 double dRotValue = 0.0;
 double dNearPlane = 0.0;
 double dFarPlane = 0.0;
@@ -145,6 +145,7 @@ int main()
 	strObjectFile = "rock.obj";
 	LoadModel(Vertices);
 
+	glEnable(GL_CULL_FACE);
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -212,22 +213,22 @@ int main()
 void RotateByVal(ERotType rotType)
 {
 	if (rotType == ERotType::Front_Neg) {
-		camera.RotZ += -1 * dRotValue;
-	}
-	else if (rotType == ERotType::Front_Pos) {
 		camera.RotZ += dRotValue;
 	}
-	else if (rotType == ERotType::Right_Neg) {
-		camera.RotX += -1 * dRotValue;
+	else if (rotType == ERotType::Front_Pos) {
+		camera.RotZ += -1*dRotValue;
 	}
-	else if (rotType == ERotType::Right_Pos) {
+	else if (rotType == ERotType::Right_Neg) {
 		camera.RotX += dRotValue;
 	}
+	else if (rotType == ERotType::Right_Pos) {
+		camera.RotX += -1*dRotValue;
+	}
 	else if (rotType == ERotType::Up_Neg) {
-		camera.RotY += -1 * (dRotValue);
+		camera.RotY += (dRotValue);
 	}
 	else if (rotType == ERotType::Up_Pos) {
-		camera.RotY += (dRotValue);
+		camera.RotY += -1 *(dRotValue);
 	}
 	camera.OnUpdateRotation();
 }
@@ -248,7 +249,6 @@ void InitModel() {
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO);
 
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
 
@@ -267,18 +267,22 @@ void SetColor()
 	for (int i = 0; i < Vertices.size(); i++) {
 		Vertices[i].Color = glm::vec3(colObject.r(), colObject.g(), colObject.b());
 	}
-	InitModel();
+	if (Vertices.size() > 0) {
+		InitModel();
+	}
 }
 
 void SetCulling()
 {
-	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	if (cullingType == ECullingType::CCW) {
 		glFrontFace(GL_CCW);
+		printf("1");
 	}
 	else{
 		glFrontFace(GL_CW);
+		printf("2");
 	}
 }
 
@@ -385,7 +389,7 @@ void SetupGUI(GLFWwindow* window)
 	gui->addGroup("Position");
 
 	gui_PositionX = gui->addVariable("X", dPositionX);
-	gui_PositionY = gui->addVariable("Y", dPositionZ);
+	gui_PositionY = gui->addVariable("Y", dPositionY);
 	gui_PositionZ = gui->addVariable("Z", dPositionZ);
 
 	gui_PositionX->setSpinnable(true);
@@ -484,7 +488,7 @@ void SetDefaults() {
 	colObject = nanogui::Color(0.5f, 0.5f, 0.7f, 1.f);
 	dPositionX = 0.0;
 	dPositionY = 0.0;
-	dPositionZ = 0.0;
+	dPositionZ = -10.0;
 	dRotValue = 0.0;
 	dNearPlane = 0.0;
 	dFarPlane = 0.0;

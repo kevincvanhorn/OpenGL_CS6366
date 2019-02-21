@@ -26,7 +26,7 @@ public:
 		farPlane = 100.0f;
 
 		initialLoc = glm::vec3(0, 0, -10);
-		localPos = glm::vec3(0,0,0);
+		localPos = glm::vec3(0,0,-10);
 		objectLoc = glm::vec3(0, 0, 0);
 
 		axisY = glm::vec3(0, 1, 0);
@@ -60,20 +60,21 @@ public:
 		glm::mat4 Projection = glm::perspective(glm::radians(perspective), screenWidth / screenHeight, nearPlane, farPlane);
 
 		glm::vec3 pointVector = glm::vec3(0,0,1);
+		glm::vec3 defaultUp = glm::vec3(0,1,0);
 
 		// Rotate Up:
-		/*glm::mat4 rot = glm::mat4(1.0f);
+		glm::mat4 rot = glm::mat4(1.0f);
 		glm::vec4 rVec = glm::vec4(pointVector.x, pointVector.y, pointVector.z, 1);
 		rot = glm::rotate(rot, glm::radians(RotY), glm::vec3(0, 1, 0));
 		rVec = rVec * rot;
-		pointVector = glm::vec3(rVec.x, rVec.y, rVec.z);*/
+		pointVector = glm::vec3(rVec.x, rVec.y, rVec.z);
 
-		//Rotate front
-		glm::mat4 rot = glm::mat4(1.0f);
-		glm::vec4 tempUp = glm::vec4(localUp.x, localUp.y, localUp.z, 1);
-		glm::rotate(rot, glm::radians(RotZ), glm::vec3(0, 0, 1));
-		tempUp = rot * tempUp;
-		localUp = glm::vec3(tempUp.x, tempUp.y, tempUp.z);
+		// Rotate along Forward
+		rot = glm::mat4(1.0f);
+		glm::vec4 tempUp = glm::vec4(defaultUp.x, defaultUp.y, defaultUp.z, 1);
+		rot = glm::rotate(rot, glm::radians(RotZ), glm::vec3(0, 0, 1));
+		tempUp = tempUp * rot;
+		axisY = glm::vec3(tempUp.x, tempUp.y, tempUp.z);
 
 		/*glm::mat4 rot = glm::mat4(1.0f);
 		glm::vec4 rVec = glm::vec4(initialLoc.x, initialLoc.y, initialLoc.z, 1);
@@ -106,7 +107,7 @@ public:
 		axisX = glm::normalize(glm::cross(axisZ, axisY));*/
 
 		// Set Camera View (where initalLoc is the camera origin)
-		glm::mat4 View = glm::lookAt(initialLoc, pointVector + initialLoc, localUp); // This should act as the new origin
+		glm::mat4 View = glm::lookAt(localPos, pointVector + localPos, axisY); // This should act as the new origin
 
 		// Model matrix : Model is at origin
 		glm::mat4 Model = glm::mat4(1.0f);
@@ -123,7 +124,7 @@ void Reset() {
 		farPlane = 100.0f;
 
 		initialLoc = glm::vec3(0, 0, -10);
-		localPos = glm::vec3(0, 0, 0);
+		localPos = glm::vec3(0, 0, -10);
 		objectLoc = glm::vec3(0, 0, 0);
 
 		axisY = glm::vec3(0, 1, 0);
