@@ -12,7 +12,6 @@
 #include "Shader.h"
 #include "nanogui/nanogui.h"
 #include <glm/glm.hpp>
-
 #include "Camera.h"
 
 using namespace nanogui;
@@ -21,12 +20,6 @@ using namespace nanogui;
 #define GUI_DOUBLE nanogui::detail::FormWidget<double, std::integral_constant<bool, true>>
 #define GUI_STRING nanogui::detail::FormWidget<std::string, std::true_type>
 #define GUI_COLOR nanogui::detail::FormWidget<nanogui::Color, std::true_type>
-
-enum test_enum {
-	Item1 = 0,
-	Item2,
-	Item3
-};
 
 enum ERotType {
 	Right_Pos,
@@ -57,9 +50,9 @@ struct Vertex {
 	// TexCoords
 	glm::vec2 TexCoords;
 };
-
 // Window dimensions
 const GLuint width = 1200, height = 700;
+Camera camera(width, height);
 
 // Gui variable handles:
 nanogui::detail::FormWidget<ERenderType, std::integral_constant<bool, true>>* gui_RenderType;
@@ -79,8 +72,8 @@ double dPositionX = 0.0;
 double dPositionY = 0.0;
 double dPositionZ = -10.0;
 double dRotValue = 0.0;
-double dNearPlane = 0.0;
-double dFarPlane = 0.0;
+double dNearPlane = camera.NEAR_PLANE;
+double dFarPlane = camera.FAR_PLANE;
 ERenderType renderType = ERenderType::Line;
 ECullingType cullingType = ECullingType::CW;
 std::string strObjectFile = "";
@@ -89,7 +82,6 @@ std::string strObjectFile = "";
 Screen *screen = nullptr;
 std::vector<Vertex> Vertices;
 GLuint VBO, VAO;
-Camera camera(width, height);
 
 // Forward declared functions:
 void RotateByVal(ERotType rotType);
@@ -102,6 +94,7 @@ void InitModel();
 
 void SetColor();
 void SetCulling();
+void SetViewLoc(float min, float max);
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -142,10 +135,11 @@ int main()
 	// Build and compile our shader program
 	Shader ourShader("shader/basic.vert", "shader/basic.frag");
 	
-	strObjectFile = "rock.obj";
-	LoadModel(Vertices);
+	//strObjectFile = "rock.obj";
+	//LoadModel(Vertices);
 
-	glEnable(GL_CULL_FACE);
+
+	if (Vertices.size() > 0) {
 
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -160,12 +154,14 @@ int main()
 	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0); // Unbind VAO
+	}
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
+		SetCulling();
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 
@@ -274,20 +270,39 @@ void SetColor()
 
 void SetCulling()
 {
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
 	if (cullingType == ECullingType::CCW) {
 		glFrontFace(GL_CCW);
-		printf("1");
 	}
 	else{
 		glFrontFace(GL_CW);
-		printf("2");
 	}
 }
 
+void SetViewLoc(float min, float max)
+{
+	float center, dist;
+
+	center = (max + min) / 2;
+	dist = abs(max - min) * 2;
+
+	camera.SetModelCenter(center, dist);
+
+	dPositionY = ((double)((int)(center*100))) /100;
+	dPositionZ = ((double)((int)((-1 * (double)dist) * 100))) / 100;
+
+	dPositionX = 0;
+	//dPositionY = (double) center;
+	//dPositionZ = -1 * (double)dist;
+
+	gui_PositionX->setValue(dPositionX);
+	gui_PositionY->setValue(dPositionY);
+	gui_PositionZ->setValue(dPositionZ);
+}
+
 /*
- * Read 
  * @ref Assignment Tips.
  */
 bool LoadModel(std::vector<Vertex> &vertices) {
@@ -296,6 +311,9 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 	std::vector<glm::vec2> tex_coords;
 
 	std::ifstream file(strObjectFile.c_str(), std::ios::in);
+
+	float Min_Z = std::numeric_limits<float>::max();
+	float Max_Z = std::numeric_limits<float>::min();
 	
 	// Check for valid file
 	if (!file) {
@@ -315,6 +333,15 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 			if (firstWord == "v") {
 				glm::vec3 vert_pos;
 				ss >> vert_pos[0] >> vert_pos[1] >> vert_pos[2];
+
+				if (vert_pos[1] < Min_Z) {
+					Min_Z = vert_pos[1];
+				}
+				if (vert_pos[1] > Max_Z) {
+					Max_Z = vert_pos[1];
+				}
+				
+
 				positions.push_back(vert_pos);
 			}
 			// Texture Coordinate
@@ -362,6 +389,9 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 		std::cout << "ERROR: Obj file cannot be read.\n";
 		return false;
 	}
+
+	SetViewLoc(Min_Z, Max_Z);
+
 	return true;
 }
 
@@ -490,8 +520,8 @@ void SetDefaults() {
 	dPositionY = 0.0;
 	dPositionZ = -10.0;
 	dRotValue = 0.0;
-	dNearPlane = 0.0;
-	dFarPlane = 0.0;
+	dNearPlane = camera.NEAR_PLANE;
+	dFarPlane = camera.FAR_PLANE;
 	renderType = ERenderType::Line;
 	cullingType = ECullingType::CW;
 	strObjectFile = "";

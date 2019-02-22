@@ -7,6 +7,16 @@
 
 class Camera {
 public:
+
+	float const NEAR_PLANE = 0.1f;
+	float const FAR_PLANE = 100.0f;
+	float const PERSP = 45.0f;
+
+	float POS_X = 0;
+	float POS_Y = 0;
+	float POS_Z = -10;
+	float DIST = -10;
+
 	float perspective;
 	float screenWidth, screenHeight;
 	float nearPlane, farPlane;
@@ -20,11 +30,11 @@ public:
 	{
 		screenWidth = width;
 		screenHeight = height;
+		perspective = PERSP;
+		nearPlane = NEAR_PLANE;
+		farPlane = FAR_PLANE;
 
-		perspective = 45.0f;
-		nearPlane = 0.1f;
-		farPlane = 100.0f;
-
+		
 		initialLoc = glm::vec3(0, 0, -10);
 		localPos = glm::vec3(0,0,-10);
 		objectLoc = glm::vec3(0, 0, 0);
@@ -71,7 +81,6 @@ public:
 		axisY = glm::vec3(tempUp.x, tempUp.y, tempUp.z);
 
 		// Rotate along Right
-		//rVec = glm::vec4(pointVector.x, pointVector.y, pointVector.z, 1);
 		rot = glm::mat4(1.0f);
 		rot = glm::rotate(rot, glm::radians(RotX), glm::vec3(1, 0, 0));
 		rVec = rVec * rot;
@@ -91,13 +100,22 @@ public:
 		return mvp;
 	}
 
-void Reset() {
-		perspective = 45.0f;
-		nearPlane = 0.1f;
-		farPlane = 100.0f;
+	void SetModelCenter(float center, float dist) {
+		DIST = dist;
+		POS_X = 0;
+		POS_Y = center;
+		POS_Z = -1 * DIST;
+
+		localPos = glm::vec3(POS_X, POS_Y, POS_Z);
+	}
+
+	void Reset() {
+		perspective = PERSP;
+		nearPlane = NEAR_PLANE;
+		farPlane = FAR_PLANE;
 
 		initialLoc = glm::vec3(0, 0, -10);
-		localPos = glm::vec3(0, 0, -10);
+		localPos = glm::vec3(POS_X, POS_Y, POS_Z);
 		objectLoc = glm::vec3(0, 0, 0);
 
 		axisY = glm::vec3(0, 1, 0);

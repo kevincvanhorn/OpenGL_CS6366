@@ -121,6 +121,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Asg01_Source\code\Camera.h" />
     <ClInclude Include="..\..\Asg02_Source\Shader.h" />
+    <ClInclude Include="Globals.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Asg02_Source\shader\basic.frag" />
