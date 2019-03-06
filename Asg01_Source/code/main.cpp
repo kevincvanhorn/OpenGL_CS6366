@@ -24,6 +24,8 @@
 #define GUI_DOUBLE nanogui::detail::FormWidget<double, std::integral_constant<bool, true>>
 #define GUI_STRING nanogui::detail::FormWidget<std::string, std::true_type>
 #define GUI_COLOR nanogui::detail::FormWidget<nanogui::Color, std::true_type>
+#define GUI_BOOL nanogui::detail::FormWidget<bool, std::true_type>
+#define GUI_FLOAT nanogui::detail::FormWidget<float, std::integral_constant<bool, true>> 
 
 using namespace nanogui;
 
@@ -50,6 +52,19 @@ enum ECullingType {
 	CCW
 };
 
+// Model shading type.
+enum EShadingType {
+	SMOOTH,
+	FLAT
+};
+
+// For depth test against camera Z value.
+enum EDepthType{
+	LESS,
+	ALWAYS
+};
+
+
 // Holds data read from the obj file.
 struct Vertex {
 	// Position
@@ -69,6 +84,9 @@ Camera camera(width, height); // Create camera w/ screen aspect ratio.
 // Gui variable handles to edit fields in the gui:
 nanogui::detail::FormWidget<ERenderType, std::integral_constant<bool, true>>* gui_RenderType;
 nanogui::detail::FormWidget<ECullingType, std::integral_constant<bool, true>>* gui_CullingType;
+nanogui::detail::FormWidget<EShadingType, std::integral_constant<bool, true>>* gui_ShadingType;
+nanogui::detail::FormWidget<EDepthType, std::integral_constant<bool, true>>* gui_DepthType;
+
 GUI_COLOR* gui_ColObject;
 GUI_STRING* gui_ObjectFile;
 GUI_DOUBLE* gui_RotValue;
@@ -77,6 +95,19 @@ GUI_DOUBLE* gui_PositionY;
 GUI_DOUBLE* gui_PositionZ;
 GUI_DOUBLE* gui_NearPlane;
 GUI_DOUBLE* gui_FarPlane;
+
+GUI_FLOAT* gui_ObjectShininess;
+GUI_BOOL* gui_DLightStatus;
+GUI_COLOR* gui_DLightAmbient;
+GUI_COLOR* gui_DLightDiffuse;
+GUI_COLOR* gui_DLightSpecular;
+GUI_BOOL* gui_PointLightStatus;
+GUI_COLOR* gui_PLightAmbient;
+GUI_COLOR* gui_PLightDiffuse;
+GUI_COLOR* gui_PLightSpecular;
+GUI_BOOL* gui_PLightRotateX;
+GUI_BOOL* gui_PLightRotateY;
+GUI_BOOL* gui_PLightRotateZ;
 
 // Variable defaults modified in the gui:
 Color colObject(0.5f, 0.5f, 0.7f, 1.f); // color of the object
@@ -88,6 +119,23 @@ double dNearPlane = camera.NEAR_PLANE;
 double dFarPlane = camera.FAR_PLANE;
 ERenderType renderType = ERenderType::Line;
 ECullingType cullingType = ECullingType::CW;
+EShadingType shadingType = EShadingType::SMOOTH;
+EDepthType depthType = EDepthType::LESS;
+
+// Second Window:
+float fObjectShininess = 32;
+bool bDirectionLightStatus = true;
+bool bPointLightStatus = false;
+bool bPointLightRotateX = false;
+bool bPointLightRotateY = false;
+bool bPointLightRotateZ = false;
+Color cDLightAmbient(0.0f, 0.0f, 0.0f, 1.f);
+Color cDLightDiffuse(0.0f, 0.0f, 0.0f, 1.f);
+Color cDLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
+Color cPLightAmbient(0.0f, 0.0f, 0.0f, 1.f);
+Color cPLightDiffuse(0.0f, 0.0f, 0.0f, 1.f);
+Color cPLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
+
 std::string strObjectFile = "";
 
 // Render Variables:
@@ -100,13 +148,14 @@ void RotateByVal(ERotType rotType);
 void ReloadObjectModel();
 void ResetGui();
 bool LoadModel(std::vector<Vertex> &vertices);
-
 void SetupGUI(GLFWwindow* window);
 void InitModel();
-
 void SetColor();
 void SetCulling();
 void SetViewLoc(float min, float max);
+
+void ResetPointLight();
+
 
 // Main function with intialization and game loop.
 int main()
@@ -320,6 +369,10 @@ void SetViewLoc(float min, float max)
 	gui_PositionZ->setValue(dPositionZ);
 }
 
+void ResetPointLight()
+{
+}
+
 /*
  * Load the obj model from a file.
  * @ref Assignment Tips in assignment writeup.
@@ -433,10 +486,6 @@ void SetupGUI(GLFWwindow* window)
 
 	ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Nanogui Control Bar"); // Gui Header
 
-	// Object color:
-	gui->addGroup("Color");
-	gui_ColObject = gui->addVariable("Object Color", colObject);
-
 	// Set vars for camera position:
 	gui->addGroup("Position");
 	gui_PositionX = gui->addVariable("X", dPositionX);
@@ -473,22 +522,59 @@ void SetupGUI(GLFWwindow* window)
 	gui_CullingType = gui->addVariable("Culling Type", cullingType, enabled);
 	gui_CullingType->setItems({ "CW", "CCW" });
 
+	gui_ShadingType = gui->addVariable("Shading Type", shadingType, enabled);
+	gui_ShadingType->setItems({ "SMOOTH", "FLAT" });
+
+	gui_DepthType = gui->addVariable("Depth Type", depthType, enabled);
+	gui_DepthType->setItems({ "LESS", "ALWAYS" });
+
 	gui_ObjectFile = gui->addVariable("Model Name", strObjectFile);
 
 	gui->addButton("Reload Model", &ReloadObjectModel);
-	gui->addButton("Reset", &ResetGui);
+	gui->addButton("Reset Camera", &ResetGui);
 
 	// Callbacks to set global variables when changed in the gui:
 	gui_ObjectFile->setCallback([](const std::string &str) { strObjectFile = str; });
 	gui_RotValue->setCallback([](double val) { dRotValue = val; });
-	gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); });
 	gui_PositionX->setCallback([](double val) { dPositionX = val; camera.localPos.x = dPositionX; });
 	gui_PositionY->setCallback([](double val) { dPositionY = val; camera.localPos.y = dPositionY; });
 	gui_PositionZ->setCallback([](double val) { dPositionZ = val; camera.localPos.z = dPositionZ; });
 	gui_FarPlane->setCallback([](double val) { dFarPlane = val; camera.farPlane = dFarPlane; });
 	gui_NearPlane->setCallback([](double val) { dNearPlane = val; camera.nearPlane = dNearPlane; });
+
 	gui_RenderType->setCallback([](const ERenderType &val) {renderType = val;});
 	gui_CullingType->setCallback([](const ECullingType &val) {cullingType = val; SetCulling(); });
+	gui_ShadingType->setCallback([](const EShadingType &val) {shadingType = val; });
+	gui_DepthType->setCallback([](const EDepthType &val) {depthType = val; });
+
+	// SECOND WINDOW ---------------------------------------------------
+	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(200, 10), "Nanogui Control Bar 2"); // Gui Header
+
+	// Object color:
+	gui->addGroup("Lighting");
+	gui_ColObject = gui->addVariable("Object Color", colObject);
+
+	gui_ObjectShininess = gui->addVariable("Object Shininess", fObjectShininess);
+
+	gui_DLightStatus = gui->addVariable("Direction Light Status", bDirectionLightStatus);
+	gui_DLightAmbient = gui->addVariable("Direction Light Ambient Color", cDLightAmbient);
+	gui_DLightDiffuse = gui->addVariable("Direction Light Ambient Diffuse", cDLightDiffuse);
+	gui_DLightSpecular = gui->addVariable("Direction Light Ambient Specular", cDLightSpecular);
+
+	gui_PointLightStatus = gui->addVariable("Point Light Status", bPointLightStatus);
+	gui_PLightAmbient = gui->addVariable("Point  Light Ambient Color", cPLightAmbient);
+	gui_PLightDiffuse = gui->addVariable("Point Light Ambient Diffuse", cPLightDiffuse);
+	gui_PLightSpecular = gui->addVariable("Point Light Ambient Specular", cPLightSpecular);
+
+	gui_PLightRotateX = gui->addVariable("Point Light Rotate on X", bPointLightRotateX);
+	gui_PLightRotateY = gui->addVariable("Point Light Rotate on Y", bPointLightRotateY);
+	gui_PLightRotateZ = gui->addVariable("Point Light Rotate on Z", bPointLightRotateZ);
+
+	gui->addButton("Reset Point Light", &ResetPointLight);
+
+	// Set Callbacks
+	gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); }); // TODO: Change this from final to normal callback
+
 
 	// Init screen:
 	screen->setVisible(true);
