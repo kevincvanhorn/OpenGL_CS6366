@@ -156,7 +156,6 @@ void SetViewLoc(float min, float max);
 
 void ResetPointLight();
 
-
 // Main function with intialization and game loop.
 int main()
 {
@@ -209,12 +208,16 @@ int main()
 
 		// Position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+
 		glEnableVertexAttribArray(0);
 
 		glBindVertexArray(0); // Unbind VAO
 	}
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
+
+	strObjectFile = "Cyborg.obj";
+	ReloadObjectModel();
 
 	// Game Loop:
 	while (!glfwWindowShouldClose(window))
@@ -226,8 +229,10 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Draw the triangle
+		// Draw the Obj
 		ourShader.use();
+		ourShader.setVec3("modelColor", colObject[0], colObject[1], colObject[2]); // Set the color of the object
+		
 		glBindVertexArray(VAO);
 
 		if (Vertices.size() > 0) {
@@ -548,7 +553,7 @@ void SetupGUI(GLFWwindow* window)
 	gui_DepthType->setCallback([](const EDepthType &val) {depthType = val; });
 
 	// SECOND WINDOW ---------------------------------------------------
-	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(200, 10), "Nanogui Control Bar 2"); // Gui Header
+	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(230, 10), "Nanogui Control Bar 2"); // Gui Header
 
 	// Object color:
 	gui->addGroup("Lighting");
@@ -573,8 +578,8 @@ void SetupGUI(GLFWwindow* window)
 	gui->addButton("Reset Point Light", &ResetPointLight);
 
 	// Set Callbacks
-	gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); }); // TODO: Change this from final to normal callback
-
+	//gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); }); // TODO: Change this from final to normal callback
+	gui_ColObject->setCallback([](const Color &c) {colObject = c; });
 
 	// Init screen:
 	screen->setVisible(true);

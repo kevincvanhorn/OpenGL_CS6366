@@ -1,9 +1,14 @@
 #version 330 core
 
-in vec3 ourColor;
+in vec3 ourColor; // Color of the object
 
-out vec4 color;
+//uniform vec3 pLightColor;
+//uniform vec3 dLightColor;
+uniform vec3 modelColor;
+
+
+out vec4 color; // Color output from the frag shader.
 
 void main(){
-    color = vec4(ourColor, 1.0f);
+    color = vec4(modelColor, 1.0f);
 }

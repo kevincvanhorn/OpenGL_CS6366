@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 
+#include <glm/glm.hpp>
+
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -81,6 +83,17 @@ public:
 		}
 	}
 	void use() { glUseProgram(this->program); }
+
+	/* Set a specified Vec3 value in the shader. */
+	/*void setVec3(const std::string &name, const glm::vec3 &value) const{
+		GLint location = glGetUniformLocation(program, name.c_str());
+		glUniform3fv(location, 1, &value[0]);
+	}*/
+
+	void setVec3(const std::string &name, float x, float y, float z) const {
+		GLint location = glGetUniformLocation(program, name.c_str());
+		glUniform3f(location, x, y, z);
+	}
 
 private:
 	void check_compile_error(GLuint shader, std::string type) {
