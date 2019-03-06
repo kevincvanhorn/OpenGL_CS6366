@@ -1,3 +1,9 @@
+/*
+ * @author Kevin VanHorn - kcv150030
+ * Loads and displays an obj file, allowing for local transformation of the camear using a model view matrix.
+ * Gui is displayed using nanogui.
+*/
+
 #include <iostream>
 #include <fstream>
 
@@ -14,13 +20,14 @@
 #include <glm/glm.hpp>
 #include "Camera.h"
 
-using namespace nanogui;
-
-// Shorthand for gui variable handles:
+// Pre-define gui variable handles:
 #define GUI_DOUBLE nanogui::detail::FormWidget<double, std::integral_constant<bool, true>>
 #define GUI_STRING nanogui::detail::FormWidget<std::string, std::true_type>
 #define GUI_COLOR nanogui::detail::FormWidget<nanogui::Color, std::true_type>
 
+using namespace nanogui;
+
+// Active local camera rotation type.
 enum ERotType {
 	Right_Pos,
 	Right_Neg,
@@ -30,31 +37,36 @@ enum ERotType {
 	Front_Neg
 };
 
+// Method to render obj file.
 enum ERenderType {
 	Line,
 	Point,
 	Solid
 };
 
+// Specifies direction of culling.
 enum ECullingType {
 	CW,
 	CCW
 };
 
+// Holds data read from the obj file.
 struct Vertex {
 	// Position
 	glm::vec3 Position;
+	// Color
 	glm::vec3 Color;
 	// Normal
 	glm::vec3 Normal;
 	// TexCoords
 	glm::vec2 TexCoords;
 };
+
 // Window dimensions
 const GLuint width = 1200, height = 700;
-Camera camera(width, height);
+Camera camera(width, height); // Create camera w/ screen aspect ratio.
 
-// Gui variable handles:
+// Gui variable handles to edit fields in the gui:
 nanogui::detail::FormWidget<ERenderType, std::integral_constant<bool, true>>* gui_RenderType;
 nanogui::detail::FormWidget<ECullingType, std::integral_constant<bool, true>>* gui_CullingType;
 GUI_COLOR* gui_ColObject;
@@ -66,8 +78,8 @@ GUI_DOUBLE* gui_PositionZ;
 GUI_DOUBLE* gui_NearPlane;
 GUI_DOUBLE* gui_FarPlane;
 
-// Variables modified in the gui:
-Color colObject(0.5f, 0.5f, 0.7f, 1.f);
+// Variable defaults modified in the gui:
+Color colObject(0.5f, 0.5f, 0.7f, 1.f); // color of the object
 double dPositionX = 0.0;
 double dPositionY = 0.0;
 double dPositionZ = -10.0;
@@ -78,12 +90,12 @@ ERenderType renderType = ERenderType::Line;
 ECullingType cullingType = ECullingType::CW;
 std::string strObjectFile = "";
 
-// Render Variables
+// Render Variables:
 Screen *screen = nullptr;
 std::vector<Vertex> Vertices;
 GLuint VBO, VAO;
 
-// Forward declared functions:
+// Forwardly declared functions:
 void RotateByVal(ERotType rotType);
 void ReloadObjectModel();
 void ResetGui();
@@ -96,11 +108,12 @@ void SetColor();
 void SetCulling();
 void SetViewLoc(float min, float max);
 
-// The MAIN function, from here we start the application and run the game loop
+// Main function with intialization and game loop.
 int main()
 {
 	// Init GLFW
 	glfwInit();
+
 	// Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -135,34 +148,29 @@ int main()
 	// Build and compile our shader program
 	Shader ourShader("shader/basic.vert", "shader/basic.frag");
 	
-	//strObjectFile = "rock.obj";
-	//LoadModel(Vertices);
-
-
+	// Init gl if object model exists:
 	if (Vertices.size() > 0) {
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+		// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+		glBindVertexArray(VAO);
 
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-	glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
+		// Position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+		glEnableVertexAttribArray(0);
 
-	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glBindVertexArray(0); // Unbind VAO
+		glBindVertexArray(0); // Unbind VAO
 	}
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
 
-	// Game loop
+	// Game Loop:
 	while (!glfwWindowShouldClose(window))
 	{
-		SetCulling();
-		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+		SetCulling(); // Specify culling variables.
 		glfwPollEvents();
 
 		// Clear the colorbuffer
@@ -175,7 +183,8 @@ int main()
 
 		if (Vertices.size() > 0) {
 			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &camera.GetMVPMatrix()[0][0]);
-
+			
+			// Set draw type:
 			if (renderType == ERenderType::Solid) {
 				glDrawArrays(GL_TRIANGLES, 0, Vertices.size());
 			}
@@ -191,21 +200,26 @@ int main()
 
 		glBindVertexArray(0);
 
+		// Set draw mode back to fill & draw gui
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		screen->drawWidgets();
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
 	}
-	// Properly de-allocate all resources once they've outlived their purpose
+
+	// De-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	glfwTerminate();
 	return 0;
 }
 
+/* Commnunicates with the camera object to adjust the view matrix rotational values. 
+* @rotType the type of rotation to apply the rotation amount "dRotValue" to.
+*/
 void RotateByVal(ERotType rotType)
 {
 	if (rotType == ERotType::Front_Neg) {
@@ -229,16 +243,17 @@ void RotateByVal(ERotType rotType)
 	camera.OnUpdateRotation();
 }
 
+/* Covers overhead for each time a model is loaded. */
 void ReloadObjectModel()
 {
-	Vertices.clear();
+	Vertices.clear(); // Refresh vertex buffer.
+	// Load the model from the file path & add colors:
 	if (LoadModel(Vertices)) {
 		SetColor();
-		//InitModel();
 	}
 }
 
-// Reinitialize buffer for drawing:
+/* Reinitializes buffer for drawing, handling OpenGL configuration. */
 void InitModel() {
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -252,12 +267,14 @@ void InitModel() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	// Color attribute
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
 
 	glBindVertexArray(0); // Unbind VAO
 }
 
+/* Set the color value for each vertex. */
 void SetColor()
 {
 	for (int i = 0; i < Vertices.size(); i++) {
@@ -268,6 +285,7 @@ void SetColor()
 	}
 }
 
+/* Configures OpenGl vars for culling. */
 void SetCulling()
 {
 	glEnable(GL_CULL_FACE);
@@ -281,29 +299,30 @@ void SetCulling()
 	}
 }
 
+/* Centers the object in the screen when loaded. */
 void SetViewLoc(float min, float max)
 {
 	float center, dist;
 
 	center = (max + min) / 2;
 	dist = abs(max - min) * 2;
-
+	
 	camera.SetModelCenter(center, dist);
 
+	// Round to 2 decimal places for gui 
+	dPositionX = 0;
 	dPositionY = ((double)((int)(center*100))) /100;
 	dPositionZ = ((double)((int)((-1 * (double)dist) * 100))) / 100;
 
-	dPositionX = 0;
-	//dPositionY = (double) center;
-	//dPositionZ = -1 * (double)dist;
-
+	// Update gui handles:
 	gui_PositionX->setValue(dPositionX);
 	gui_PositionY->setValue(dPositionY);
 	gui_PositionZ->setValue(dPositionZ);
 }
 
 /*
- * @ref Assignment Tips.
+ * Load the obj model from a file.
+ * @ref Assignment Tips in assignment writeup.
  */
 bool LoadModel(std::vector<Vertex> &vertices) {
 	std::vector<glm::vec3> positions;
@@ -334,6 +353,7 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 				glm::vec3 vert_pos;
 				ss >> vert_pos[0] >> vert_pos[1] >> vert_pos[2];
 
+				// Construct bounds of model:
 				if (vert_pos[1] < Min_Z) {
 					Min_Z = vert_pos[1];
 				}
@@ -341,7 +361,6 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 					Max_Z = vert_pos[1];
 				}
 				
-
 				positions.push_back(vert_pos);
 			}
 			// Texture Coordinate
@@ -390,11 +409,12 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 		return false;
 	}
 
-	SetViewLoc(Min_Z, Max_Z);
+	SetViewLoc(Min_Z, Max_Z); // Position object in center.
 
 	return true;
 }
 
+/* Configure Nanogui settings with a given window. */
 void SetupGUI(GLFWwindow* window)
 {
 	// Create a nanogui screen and pass the glfw pointer to initialize
@@ -413,11 +433,12 @@ void SetupGUI(GLFWwindow* window)
 
 	ref<Window> nanoguiWindow = gui->addWindow(Eigen::Vector2i(10, 10), "Nanogui Control Bar"); // Gui Header
 
+	// Object color:
 	gui->addGroup("Color");
 	gui_ColObject = gui->addVariable("Object Color", colObject);
 
+	// Set vars for camera position:
 	gui->addGroup("Position");
-
 	gui_PositionX = gui->addVariable("X", dPositionX);
 	gui_PositionY = gui->addVariable("Y", dPositionY);
 	gui_PositionZ = gui->addVariable("Z", dPositionZ);
@@ -426,6 +447,7 @@ void SetupGUI(GLFWwindow* window)
 	gui_PositionY->setSpinnable(true);
 	gui_PositionZ->setSpinnable(true);
 
+	// Camera local rotation:
 	gui->addGroup("Rotate");
 	gui_RotValue = gui->addVariable("Rotate Value", dRotValue);
 	gui_RotValue->setSpinnable(true);
@@ -437,6 +459,7 @@ void SetupGUI(GLFWwindow* window)
 	gui->addButton("Rotate Front+", []() { RotateByVal(ERotType::Front_Pos); });
 	gui->addButton("Rotate Front-", []() { RotateByVal(ERotType::Front_Neg); });
 
+	// Camera viewing plane & render settings:
 	gui->addGroup("Configuration");
 	gui_NearPlane = gui->addVariable("Z Near", dNearPlane);
 	gui_FarPlane = gui->addVariable("Z Far", dFarPlane);
@@ -467,8 +490,11 @@ void SetupGUI(GLFWwindow* window)
 	gui_RenderType->setCallback([](const ERenderType &val) {renderType = val;});
 	gui_CullingType->setCallback([](const ECullingType &val) {cullingType = val; SetCulling(); });
 
+	// Init screen:
 	screen->setVisible(true);
 	screen->performLayout();
+
+	// Set additional callbacks:
 
 	glfwSetCursorPosCallback(window,
 		[](GLFWwindow *, double x, double y) {

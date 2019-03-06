@@ -1,3 +1,9 @@
+/*
+ * @author Kevin VanHorn - kcv150030
+ * Responsible for creating and managing the model-view-projection matrix, handling rotation and translations
+ * to the camera in local space.
+*/
+
 #pragma once
 
 #include <glm/glm.hpp>
@@ -7,21 +13,20 @@
 
 class Camera {
 public:
-
+	// Default values:
 	float const NEAR_PLANE = 0.1f;
 	float const FAR_PLANE = 100.0f;
 	float const PERSP = 45.0f;
-
 	float POS_X = 0;
 	float POS_Y = 0;
 	float POS_Z = -10;
 	float DIST = -10;
 
+	// Local camera values
 	float perspective;
 	float screenWidth, screenHeight;
 	float nearPlane, farPlane;
 	glm::vec3 localPos, objectLoc, initialLoc;
-
 	glm::vec3 axisX, axisY, axisZ, localUp; // Left/Right, Up/Down, Forward/Backward respectively
 	float RotX, RotY, RotZ;
 
@@ -33,7 +38,6 @@ public:
 		perspective = PERSP;
 		nearPlane = NEAR_PLANE;
 		farPlane = FAR_PLANE;
-
 		
 		initialLoc = glm::vec3(0, 0, -10);
 		localPos = glm::vec3(0,0,-10);
@@ -50,12 +54,8 @@ public:
 		RotZ = 0;
 	}
 
-	void UpdateCoordinates() {
-	}
-
 	// Called after yaw/pitch/roll values have changed.
 	void OnUpdateRotation() {
-	
 	}
 
 	glm::mat4 GetMVPMatrix()
@@ -73,7 +73,7 @@ public:
 		rVec = rVec * rot;
 		pointVector = glm::vec3(rVec.x, rVec.y, rVec.z);
 
-		// Rotate along Forward
+		// Rotate along Forward:
 		rot = glm::mat4(1.0f);
 		glm::vec4 tempUp = glm::vec4(defaultUp.x, defaultUp.y, defaultUp.z, 1);
 		rot = glm::rotate(rot, glm::radians(RotZ), glm::vec3(0, 0, 1));
@@ -100,6 +100,7 @@ public:
 		return mvp;
 	}
 
+	/* Centers the model with an object center and dist from the object. */
 	void SetModelCenter(float center, float dist) {
 		DIST = dist;
 		POS_X = 0;
@@ -109,6 +110,7 @@ public:
 		localPos = glm::vec3(POS_X, POS_Y, POS_Z);
 	}
 
+	/* Set camera to default settings. */
 	void Reset() {
 		perspective = PERSP;
 		nearPlane = NEAR_PLANE;
