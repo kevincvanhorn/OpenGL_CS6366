@@ -18,6 +18,8 @@
 #include "Shader.h"
 #include "nanogui/nanogui.h"
 #include <glm/glm.hpp>
+
+#include "PointLight.h"
 #include "Camera.h"
 
 // Pre-define gui variable handles:
@@ -69,10 +71,10 @@ enum EDepthType{
 struct Vertex {
 	// Position
 	glm::vec3 Position;
-	// Color
-	glm::vec3 Color;
 	// Normal
 	glm::vec3 Normal;
+	// Color
+	glm::vec3 Color;
 	// TexCoords
 	glm::vec2 TexCoords;
 };
@@ -80,6 +82,7 @@ struct Vertex {
 // Window dimensions
 const GLuint width = 1200, height = 700;
 Camera camera(width, height); // Create camera w/ screen aspect ratio.
+PointLight pointLight(camera.GetCameraPos());
 
 // Gui variable handles to edit fields in the gui:
 nanogui::detail::FormWidget<ERenderType, std::integral_constant<bool, true>>* gui_RenderType;
@@ -232,7 +235,47 @@ int main()
 		// Draw the Obj
 		ourShader.use();
 		ourShader.setVec3("modelColor", colObject[0], colObject[1], colObject[2]); // Set the color of the object
+		ourShader.setVec3("camPos", camera.GetCameraPos());
+		pointLight.Loc = camera.GetCameraPos();
+
+		pointLight.UpdatePos(bPointLightRotateX, bPointLightRotateY, bPointLightRotateZ);
 		
+
+		if (shadingType = EShadingType::FLAT) {
+			ourShader.setVec3("bUseSmooth", false);
+		}
+		else {
+			ourShader.setVec3("bUseSmooth", false);
+		}
+
+		// Direction Light
+		if (bDirectionLightStatus) {
+			ourShader.setVec3("dLightDiffuse", cDLightDiffuse[0], cDLightDiffuse[1], cDLightDiffuse[2]);
+			ourShader.setVec3("dLightSpecular", cDLightSpecular[0], cDLightSpecular[1], cDLightSpecular[2]);
+			ourShader.setVec3("dLightAmbient", cDLightAmbient[0], cDLightAmbient[1], cDLightAmbient[2]);
+		}
+		else {
+			ourShader.setVec3("dLightDiffuse", 0, 0, 0);
+			ourShader.setVec3("dLightSpecular", 0, 0, 0);
+			ourShader.setVec3("dLightAmbient", 0, 0, 0);
+		}
+
+		// Point Light
+		if (bPointLightStatus) {
+			ourShader.setVec3("pLightDiffuse", cPLightDiffuse[0], cPLightDiffuse[1], cPLightDiffuse[2]);
+			ourShader.setVec3("pLightSpecular", cPLightSpecular[0], cPLightSpecular[1], cPLightSpecular[2]);
+			ourShader.setVec3("pLightAmbient", cPLightAmbient[0], cPLightAmbient[1], cPLightAmbient[2]);
+			ourShader.setVec3("pLightloc", pointLight.getLoc());
+
+			printf("%f \n",pointLight.getLoc().x);
+		}
+		else {
+			ourShader.setVec3("pLightDiffuse", 0, 0, 0);
+			ourShader.setVec3("pLightSpecular", 0, 0, 0);
+			ourShader.setVec3("pLightAmbient", 0, 0, 0);
+			ourShader.setVec3("pLightLoc", pointLight.getLoc());
+		}
+
 		glBindVertexArray(VAO);
 
 		if (Vertices.size() > 0) {
@@ -321,9 +364,9 @@ void InitModel() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// Color attribute
+	// Normal attribute
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Color));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
 	glBindVertexArray(0); // Unbind VAO
 }
@@ -376,6 +419,7 @@ void SetViewLoc(float min, float max)
 
 void ResetPointLight()
 {
+	pointLight.MovedLoc = pointLight.Loc;
 }
 
 /*
@@ -580,6 +624,9 @@ void SetupGUI(GLFWwindow* window)
 	// Set Callbacks
 	//gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); }); // TODO: Change this from final to normal callback
 	gui_ColObject->setCallback([](const Color &c) {colObject = c; });
+	gui_DLightAmbient->setCallback([](const Color &c) {cDLightAmbient = c; });
+	gui_PLightSpecular->setCallback([](const Color &c) {cPLightSpecular = c; });
+	gui_PLightRotateX->setCallback([](bool b) {bPointLightRotateX = b; });
 
 	// Init screen:
 	screen->setVisible(true);

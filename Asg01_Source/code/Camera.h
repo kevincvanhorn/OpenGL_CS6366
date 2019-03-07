@@ -58,6 +58,10 @@ public:
 	void OnUpdateRotation() {
 	}
 
+	glm::vec3 GetCameraPos() {
+		return glm::vec3(localPos.x, localPos.y, -localPos.z);
+	}
+
 	glm::mat4 GetMVPMatrix()
 	{
 		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
