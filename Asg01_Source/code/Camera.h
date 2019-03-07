@@ -19,8 +19,8 @@ public:
 	float const PERSP = 45.0f;
 	float POS_X = 0;
 	float POS_Y = 0;
-	float POS_Z = -10;
-	float DIST = -10;
+	float POS_Z = 10;
+	float DIST = 10;
 
 	// Local camera values
 	float perspective;
@@ -39,13 +39,13 @@ public:
 		nearPlane = NEAR_PLANE;
 		farPlane = FAR_PLANE;
 		
-		initialLoc = glm::vec3(0, 0, -10);
-		localPos = glm::vec3(0,0,-10);
+		initialLoc = glm::vec3(0, 0, 10);
+		localPos = glm::vec3(0,0,10);
 		objectLoc = glm::vec3(0, 0, 0);
 
 		axisY = glm::vec3(0, 1, 0);
 		axisX = glm::vec3(1, 0, 0);
-		axisZ = glm::vec3(0, 0, 1);
+		axisZ = glm::vec3(0, 0, -1);
 
 		localUp = glm::vec3(0,1,0);
 
@@ -59,7 +59,7 @@ public:
 	}
 
 	glm::vec3 GetCameraPos() {
-		return glm::vec3(localPos.x, localPos.y, -localPos.z);
+		return glm::vec3(localPos.x, localPos.y, localPos.z);
 	}
 
 	glm::mat4 GetMVPMatrix()
@@ -67,7 +67,7 @@ public:
 		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		glm::mat4 Projection = glm::perspective(glm::radians(perspective), screenWidth / screenHeight, nearPlane, farPlane);
 
-		glm::vec3 pointVector = glm::vec3(0,0,1);
+		glm::vec3 pointVector = glm::vec3(0,0,-1);
 		glm::vec3 defaultUp = glm::vec3(0,1,0);
 
 		// Rotate Up:
@@ -120,13 +120,13 @@ public:
 		nearPlane = NEAR_PLANE;
 		farPlane = FAR_PLANE;
 
-		initialLoc = glm::vec3(0, 0, -10);
+		initialLoc = glm::vec3(0, 0, 10);
 		localPos = glm::vec3(POS_X, POS_Y, POS_Z);
 		objectLoc = glm::vec3(0, 0, 0);
 
 		axisY = glm::vec3(0, 1, 0);
 		axisX = glm::vec3(1, 0, 0);
-		axisZ = glm::vec3(0, 0, 1);
+		axisZ = glm::vec3(0, 0, -1);
 
 		localUp = glm::vec3(0, 1, 0);
 

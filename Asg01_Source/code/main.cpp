@@ -121,7 +121,7 @@ double dRotValue = 0.0;
 double dNearPlane = camera.NEAR_PLANE;
 double dFarPlane = camera.FAR_PLANE;
 ERenderType renderType = ERenderType::Line;
-ECullingType cullingType = ECullingType::CW;
+ECullingType cullingType = ECullingType::CCW;
 EShadingType shadingType = EShadingType::SMOOTH;
 EDepthType depthType = EDepthType::LESS;
 
@@ -418,12 +418,12 @@ void SetViewLoc(float min, float max)
 	center = (max + min) / 2;
 	dist = abs(max - min) * 2;
 	
-	camera.SetModelCenter(center, dist);
+	camera.SetModelCenter(center, -dist);
 
 	// Round to 2 decimal places for gui 
 	dPositionX = 0;
 	dPositionY = ((double)((int)(center*100))) /100;
-	dPositionZ = ((double)((int)((-1 * (double)dist) * 100))) / 100;
+	dPositionZ = ((double)((int)(((double)dist) * 100))) / 100;
 
 	// Update gui handles:
 	gui_PositionX->setValue(dPositionX);
@@ -701,7 +701,7 @@ void SetDefaults() {
 	dNearPlane = camera.NEAR_PLANE;
 	dFarPlane = camera.FAR_PLANE;
 	renderType = ERenderType::Line;
-	cullingType = ECullingType::CW;
+	cullingType = ECullingType::CCW;
 	strObjectFile = "";
 
 	camera.Reset();
