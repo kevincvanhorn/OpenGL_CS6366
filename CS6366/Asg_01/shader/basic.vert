@@ -1,5 +1,6 @@
 #version 330 core
 
+// Vertex Inputs
 layout(location = 0) in vec3 vPosition_modelspace;
 layout (location = 1) in vec3 normal;
 
@@ -12,7 +13,7 @@ uniform mat4 MVP;
 void main(){
 	mat4 mMatrix = mat4(1.0f);
 
-	pixelPos = vec3(mMatrix * vec4(vPosition_modelspace, 1.0)); // *model should be here
+	pixelPos = vec3(mMatrix * vec4(vPosition_modelspace, 1.0));
 
 	pixelNormalS = mat3(transpose(inverse(mMatrix))) * normal;
 	pixelNormalF = mat3(transpose(inverse(mMatrix))) * normal;

@@ -1,7 +1,6 @@
 /*
  * @author Kevin VanHorn - kcv150030
- * Responsible for creating and managing the model-view-projection matrix, handling rotation and translations
- * to the camera in local space.
+ * Responsible for maintaining the point light position and allowing for reset.
 */
 
 #pragma once
@@ -38,10 +37,9 @@ public:
 		//prevTime = deltaTime;
 		//float dist = deltaTime * speed;
 		
-		float dist = .4; // essentially the speed
+		float dist = .4; // Update distance each tick
 
 		// Slow down the distance traveled for each axis used
-
 		float numTrue = 0;
 		if (bRotX) { numTrue++; }
 		if (bRotY) { numTrue++; }

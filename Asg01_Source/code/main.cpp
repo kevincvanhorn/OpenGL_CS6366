@@ -113,7 +113,7 @@ GUI_BOOL* gui_PLightRotateY;
 GUI_BOOL* gui_PLightRotateZ;
 
 // Variable defaults modified in the gui:
-Color colObject(0.5f, 0.5f, 0.7f, 1.f); // color of the object
+Color colObject(1.0f, 1.0f, 1.0f, 1.0f); // color of the object
 double dPositionX = 0.0;
 double dPositionY = 0.0;
 double dPositionZ = -10.0;
@@ -693,7 +693,7 @@ void SetupGUI(GLFWwindow* window)
 
 /* Reset variables used in the gui to their default values. */
 void SetDefaults() {
-	colObject = nanogui::Color(0.5f, 0.5f, 0.7f, 1.f);
+	colObject = nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f);
 	dPositionX = 0.0;
 	dPositionY = 0.0;
 	dPositionZ = -10.0;
