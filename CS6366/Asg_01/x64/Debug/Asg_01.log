@@ -3,30 +3,30 @@
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\shader.h(53): warning C4101: 'info_log': unreferenced local variable
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\pointlight.h(29): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\pointlight.h(41): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(286): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(290): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(294): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(323): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(326): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(329): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(332): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(335): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(338): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(588): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(300): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(304): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(308): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(337): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(340): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(343): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(346): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(349): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(352): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(602): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(589): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(603): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(590): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(604): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(591): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(592): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(605): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(606): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Asg_01.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\x64\Debug\Asg_01.exe

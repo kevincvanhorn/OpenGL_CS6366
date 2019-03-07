@@ -7,6 +7,8 @@ flat in vec3 pixelNormalF;
 
 uniform bool bUseSmooth;
 
+uniform float shininess;
+
 uniform vec3 camPos;
 
 uniform vec3 dLightDiffuse;
@@ -28,13 +30,13 @@ void main(){
 		pixelNormal = pixelNormalS;
 	}
 	else{
-		pixelNormal = pixelNormalS;
+		pixelNormal = pixelNormalF;
 	}
 
 	vec3 dDirection = vec3(0, 1, 1);
 	vec3 pDirection = normalize(pLightloc - pixelPos);
 	dDirection = normalize(dDirection);
-	float shininess = 32;
+	//float shininess = 32;
 
 	// Ambient
 	vec3 ambient = dLightAmbient * 1.0f;

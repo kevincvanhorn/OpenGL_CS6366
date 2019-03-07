@@ -187,7 +187,7 @@ int main()
 #endif
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	SetupGUI(window);
 
@@ -230,7 +230,17 @@ int main()
 
 		// Clear the colorbuffer
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if (depthType == EDepthType::ALWAYS) {
+			//glEnable(GL_DEPTH_TEST);
+			//glDepthFunc(GL_ALWAYS);
+		}
+		else {
+			glEnable(GL_DEPTH_TEST);
+			//glDepthFunc(GL_LESS);
+
+		}
 
 		// Draw the Obj
 		ourShader.use();
@@ -241,11 +251,13 @@ int main()
 		pointLight.UpdatePos(bPointLightRotateX, bPointLightRotateY, bPointLightRotateZ);
 		
 
-		if (shadingType = EShadingType::FLAT) {
-			ourShader.setVec3("bUseSmooth", false);
+		ourShader.setFloat("shininess", fObjectShininess);
+
+		if (shadingType == EShadingType::FLAT) {
+			ourShader.setBool("bUseSmooth", false);
 		}
 		else {
-			ourShader.setVec3("bUseSmooth", false);
+			ourShader.setBool("bUseSmooth", true);
 		}
 
 		// Direction Light
@@ -267,7 +279,7 @@ int main()
 			ourShader.setVec3("pLightAmbient", cPLightAmbient[0], cPLightAmbient[1], cPLightAmbient[2]);
 			ourShader.setVec3("pLightloc", pointLight.getLoc());
 
-			printf("%f \n",pointLight.getLoc().x);
+			//printf("%f \n",pointLight.getLoc().x);
 		}
 		else {
 			ourShader.setVec3("pLightDiffuse", 0, 0, 0);
@@ -275,6 +287,8 @@ int main()
 			ourShader.setVec3("pLightAmbient", 0, 0, 0);
 			ourShader.setVec3("pLightLoc", pointLight.getLoc());
 		}
+		
+		
 
 		glBindVertexArray(VAO);
 
