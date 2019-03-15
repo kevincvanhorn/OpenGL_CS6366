@@ -1,9 +1,11 @@
 #version 330 core
 in vec3 pixelPos;
+in vec2 texCoord;
 smooth in vec3 pixelNormalS;
 flat in vec3 pixelNormalF;
 
 uniform bool bUseSmooth;
+uniform bool bDiffuseTex;
 
 uniform float shininess;
 
@@ -19,6 +21,11 @@ uniform vec3 pLightAmbient;
 uniform vec3 pLightloc;
 
 uniform vec3 modelColor;
+
+
+// Texture sampler:
+uniform sampler2D TexDiffuse;
+//uniform sampler2D TexNormal;
 
 out vec4 color; // Color output from the frag shader.
 
@@ -61,6 +68,12 @@ void main(){
 	vec3 pSpecular = pLightSpecular * pFSpecular;
 	specular += pSpecular;
 
-	// Blinn-Phong Model:
-    color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
+	
+	if(bDiffuseTex){
+		color = texture(TexDiffuse, texCoord);
+	}
+	else{
+		// Blinn-Phong Model:
+		color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
+	}
 }

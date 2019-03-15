@@ -75,10 +75,10 @@ struct Vertex {
 	glm::vec3 Position;
 	// Normal
 	glm::vec3 Normal;
-	// Color
-	glm::vec3 Color;
 	// TexCoords
 	glm::vec2 TexCoords;
+	// Color
+	glm::vec3 Color;
 };
 
 // Window dimensions
@@ -121,7 +121,6 @@ GUI_FLOAT* gui_DLightZ;
 GUI_BOOL* gui_TextureStatus;
 GUI_BOOL* gui_NormalMapStatus;
 
-
 // Variable defaults modified in the gui:
 Color colObject(1.0f, 1.0f, 1.0f, 1.0f); // color of the object
 double dPositionX = 0.0;
@@ -130,7 +129,7 @@ double dPositionZ = -10.0;
 double dRotValue = 0.0;
 double dNearPlane = camera.NEAR_PLANE;
 double dFarPlane = camera.FAR_PLANE;
-ERenderType renderType = ERenderType::Line;
+ERenderType renderType = ERenderType::Solid;
 ECullingType cullingType = ECullingType::CCW;
 EShadingType shadingType = EShadingType::SMOOTH;
 EDepthType depthType = EDepthType::LESS;
@@ -155,6 +154,9 @@ float fDLightZ = -1;
 bool bTextureStatus = false;
 bool bNormalMapStatus = false;
 
+unsigned int diffuseID;
+unsigned int normalID;
+
 std::string strObjectFile = "";
 
 // Render Variables:
@@ -176,6 +178,9 @@ void SetViewLoc(float min, float max);
 void ResetPointLight();
 
 void LoadImage(std::string img_path, int width, int height);
+void LoadTextures();
+
+void InitTexturesGL();
 
 // Main function with intialization and game loop.
 int main()
@@ -224,13 +229,19 @@ int main()
 		// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 		glBindVertexArray(VAO);
 
+		InitTexturesGL();
+
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
 
 		// Position attribute
+		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
-		glEnableVertexAttribArray(0);
+		// Texture Coords attribute:
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+		glEnableVertexAttribArray(2);
+
 
 		glBindVertexArray(0); // Unbind VAO
 	}
@@ -251,13 +262,9 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if (depthType == EDepthType::ALWAYS) {
-			//glEnable(GL_DEPTH_TEST);
-			//glDepthFunc(GL_ALWAYS);
 		}
 		else {
 			glEnable(GL_DEPTH_TEST);
-			//glDepthFunc(GL_LESS);
-
 		}
 
 		// Draw the Obj
@@ -268,7 +275,6 @@ int main()
 
 		pointLight.UpdatePos(bPointLightRotateX, bPointLightRotateY, bPointLightRotateZ);
 		
-
 		ourShader.setFloat("shininess", fObjectShininess);
 
 		if (shadingType == EShadingType::FLAT) {
@@ -276,6 +282,19 @@ int main()
 		}
 		else {
 			ourShader.setBool("bUseSmooth", true);
+		}
+
+		if (bTextureStatus) {
+			ourShader.setBool("bDiffuseTex", true);
+		}
+		else {
+			ourShader.setBool("bDiffuseTex", false);
+
+		}
+
+		// Use Diffuse texture
+		if(bTextureStatus){
+			glBindTexture(GL_TEXTURE_2D, diffuseID);
 		}
 
 		// Direction Light
@@ -379,6 +398,7 @@ void ReloadObjectModel()
 	// Load the model from the file path & add colors:
 	if (LoadModel(Vertices)) {
 		SetColor();
+		//LoadTextures();
 	}
 }
 
@@ -399,6 +419,13 @@ void InitModel() {
 	// Normal attribute
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+	// Texture Coords attribute:
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+	glEnableVertexAttribArray(2);
+
+	InitTexturesGL();
+	LoadTextures();
 
 	glBindVertexArray(0); // Unbind VAO
 }
@@ -454,11 +481,72 @@ void ResetPointLight()
 	pointLight.MovedLoc = pointLight.Loc;
 }
 
+void InitTexturesGL()
+{
+	glGenTextures(1, &diffuseID);
+	//glGenTextures(1, &normalID);
+
+	//glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, normalID);
+}
+
 void LoadImage(std::string img_path, int width, int height)
 {
 	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	if (image) {
+		printf("FOUND: Texture found.");
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		printf("ERROR: Texture not found.");
+	}
 
+}
+
+void LoadTextures()
+{
+	std::string path = strObjectFile;
+	int imgX, imgY;
+
+	if (strObjectFile.length() > 0) {
+		const std::string obj(".obj");
+		if (path.size() > obj.size() &&
+			path.substr(path.size() - obj.size()) == ".obj") {
+			path = path.substr(0, path.length() - obj.length());
+			std::cout << path;
+			if (path.compare("cyborg") !=0 && path.compare("cube") !=0) {
+				printf("ERROR: Texture maps not provided for this object:  _%s_ ", path);
+				return;
+			}
+			if (path == "cube") {
+				imgX = imgY = 256;
+			}
+			else { imgX = imgY = 1024; }
+			printf("%d",imgX);
+		}
+		else {
+			printf("ERROR: Invalid object name for texture loading.");
+			return;
+		}
+	}
+
+	if (bTextureStatus) {
+		std::string texPath = path.append("_diffuse.png");
+		LoadImage(texPath, imgX, imgY);
+	}
+	if (bNormalMapStatus) {
+		std::string normPath = path.append("_normal.png");
+		LoadImage(normPath, imgX, imgY);
+	}
 }
 
 /*
