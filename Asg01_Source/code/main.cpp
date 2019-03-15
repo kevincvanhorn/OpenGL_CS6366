@@ -18,9 +18,11 @@
 #include "Shader.h"
 #include "nanogui/nanogui.h"
 #include <glm/glm.hpp>
+#include <SOIL.h>
 
 #include "PointLight.h"
 #include "Camera.h"
+
 
 // Pre-define gui variable handles:
 #define GUI_DOUBLE nanogui::detail::FormWidget<double, std::integral_constant<bool, true>>
@@ -112,6 +114,14 @@ GUI_BOOL* gui_PLightRotateX;
 GUI_BOOL* gui_PLightRotateY;
 GUI_BOOL* gui_PLightRotateZ;
 
+GUI_FLOAT* gui_DLightX;
+GUI_FLOAT* gui_DLightY;
+GUI_FLOAT* gui_DLightZ;
+
+GUI_BOOL* gui_TextureStatus;
+GUI_BOOL* gui_NormalMapStatus;
+
+
 // Variable defaults modified in the gui:
 Color colObject(1.0f, 1.0f, 1.0f, 1.0f); // color of the object
 double dPositionX = 0.0;
@@ -139,6 +149,12 @@ Color cPLightAmbient(0.0f, 0.0f, 0.0f, 1.f);
 Color cPLightDiffuse(0.0f, 0.0f, 0.0f, 1.f);
 Color cPLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
 
+float fDLightX = 0;
+float fDLightY = -1;
+float fDLightZ = -1;
+bool bTextureStatus = false;
+bool bNormalMapStatus = false;
+
 std::string strObjectFile = "";
 
 // Render Variables:
@@ -158,6 +174,8 @@ void SetCulling();
 void SetViewLoc(float min, float max);
 
 void ResetPointLight();
+
+void LoadImage(std::string img_path, int width, int height);
 
 // Main function with intialization and game loop.
 int main()
@@ -219,7 +237,7 @@ int main()
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
 
-	strObjectFile = "Cyborg.obj";
+	strObjectFile = "cube.obj";
 	ReloadObjectModel();
 
 	// Game Loop:
@@ -436,6 +454,13 @@ void ResetPointLight()
 	pointLight.MovedLoc = pointLight.Loc;
 }
 
+void LoadImage(std::string img_path, int width, int height)
+{
+	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+}
+
 /*
  * Load the obj model from a file.
  * @ref Assignment Tips in assignment writeup.
@@ -620,6 +645,12 @@ void SetupGUI(GLFWwindow* window)
 	gui_ObjectShininess = gui->addVariable("Object Shininess", fObjectShininess);
 
 	gui_DLightStatus = gui->addVariable("Direction Light Status", bDirectionLightStatus);
+
+	gui_DLightX = gui->addVariable("Direction Light Direction X", fDLightX);
+	gui_DLightY = gui->addVariable("Direction Light Direction Y", fDLightY);
+	gui_DLightZ = gui->addVariable("Direction Light Direction Z", fDLightZ);
+
+
 	gui_DLightAmbient = gui->addVariable("Direction Light Ambient Color", cDLightAmbient);
 	gui_DLightDiffuse = gui->addVariable("Direction Light Ambient Diffuse", cDLightDiffuse);
 	gui_DLightSpecular = gui->addVariable("Direction Light Ambient Specular", cDLightSpecular);
@@ -641,6 +672,10 @@ void SetupGUI(GLFWwindow* window)
 	gui_DLightAmbient->setCallback([](const Color &c) {cDLightAmbient = c; });
 	gui_PLightSpecular->setCallback([](const Color &c) {cPLightSpecular = c; });
 	gui_PLightRotateX->setCallback([](bool b) {bPointLightRotateX = b; });
+
+	// ASSIGNMENT 3 - -----------------------------------------------
+	gui_TextureStatus = gui->addVariable("Texture Status", bTextureStatus);
+	gui_NormalMapStatus = gui->addVariable("Normal Map Status", bNormalMapStatus);
 
 	// Init screen:
 	screen->setVisible(true);
