@@ -33,6 +33,21 @@
 
 using namespace nanogui;
 
+void GLAPIENTRY
+MessageCallback(GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const GLchar* message,
+	const void* userParam)
+{
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+		type, severity, message);
+}
+
+
 // Active local camera rotation type.
 enum ERotType {
 	Right_Pos,
@@ -151,7 +166,7 @@ Color cPLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
 float fDLightX = 0;
 float fDLightY = -1;
 float fDLightZ = -1;
-bool bTextureStatus = false;
+bool bTextureStatus = true;
 bool bNormalMapStatus = false;
 
 unsigned int diffuseID;
@@ -187,6 +202,8 @@ int main()
 {
 	// Init GLFW
 	glfwInit();
+	
+	
 
 	// Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -219,36 +236,15 @@ int main()
 	// Initialize GLEW to setup the OpenGL Function pointers
 	glewInit();
 
+	glEnable(GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(MessageCallback, 0);
+
 	// Build and compile our shader program
 	Shader ourShader("shader/basic.vert", "shader/basic.frag");
-	
-	// Init gl if object model exists:
-	if (Vertices.size() > 0) {
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-		glBindVertexArray(VAO);
-
-		InitTexturesGL();
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
-
-		// Position attribute
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-
-		// Texture Coords attribute:
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		glEnableVertexAttribArray(2);
-
-
-		glBindVertexArray(0); // Unbind VAO
-	}
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
 
-	strObjectFile = "cube.obj";
+	strObjectFile = "cyborg.obj";
 	ReloadObjectModel();
 
 	// Game Loop:
@@ -284,17 +280,19 @@ int main()
 			ourShader.setBool("bUseSmooth", true);
 		}
 
+		// Use Diffuse texture
 		if (bTextureStatus) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, diffuseID);
+		}
+
+		if (bTextureStatus) {
+			ourShader.setInt("TexDiffuse", 0);
 			ourShader.setBool("bDiffuseTex", true);
 		}
 		else {
 			ourShader.setBool("bDiffuseTex", false);
 
-		}
-
-		// Use Diffuse texture
-		if(bTextureStatus){
-			glBindTexture(GL_TEXTURE_2D, diffuseID);
 		}
 
 		// Direction Light
@@ -325,8 +323,6 @@ int main()
 			ourShader.setVec3("pLightLoc", pointLight.getLoc());
 		}
 		
-		
-
 		glBindVertexArray(VAO);
 
 		if (Vertices.size() > 0) {
@@ -404,6 +400,7 @@ void ReloadObjectModel()
 
 /* Reinitializes buffer for drawing, handling OpenGL configuration. */
 void InitModel() {
+	std::cout << "Init Model. \n";
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
@@ -421,8 +418,8 @@ void InitModel() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
 	// Texture Coords attribute:
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
 	InitTexturesGL();
 	LoadTextures();
@@ -487,12 +484,6 @@ void InitTexturesGL()
 	//glGenTextures(1, &normalID);
 
 	//glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseID);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	//glActiveTexture(GL_TEXTURE1);
 	//glBindTexture(GL_TEXTURE_2D, normalID);
@@ -502,12 +493,19 @@ void LoadImage(std::string img_path, int width, int height)
 {
 	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
 	if (image) {
-		printf("FOUND: Texture found.");
+		glBindTexture(GL_TEXTURE_2D, diffuseID);
+		
+		//printf("FOUND: Texture found.");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 	else {
-		printf("ERROR: Texture not found.");
+		printf("ERROR: Texture not found. %s", img_path);
 	}
 
 }
@@ -539,8 +537,9 @@ void LoadTextures()
 		}
 	}
 
-	if (bTextureStatus) {
+	if (true){//bTextureStatus) {
 		std::string texPath = path.append("_diffuse.png");
+		std::cout << texPath << "\n";
 		LoadImage(texPath, imgX, imgY);
 	}
 	if (bNormalMapStatus) {
@@ -614,18 +613,21 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 				Vertex vertex_0;
 				vertex_0.Position = positions[pos_idx - 1];
 				vertex_0.TexCoords = tex_coords[tex_idx - 1];
+				vertex_0.TexCoords.y *= -1;
 				vertex_0.Normal = normals[norm_idx - 1];
 				sscanf(s_vertex_1.c_str(), "%d/%d/%d", &pos_idx, &tex_idx, &norm_idx);
 
 				Vertex vertex_1;
 				vertex_1.Position = positions[pos_idx - 1];
 				vertex_1.TexCoords = tex_coords[tex_idx - 1];
+				vertex_1.TexCoords.y *= -1;
 				vertex_1.Normal = normals[norm_idx - 1];
 				sscanf(s_vertex_2.c_str(), "%d/%d/%d", &pos_idx, &tex_idx, &norm_idx);
 
 				Vertex vertex_2;
 				vertex_2.Position = positions[pos_idx - 1];
 				vertex_2.TexCoords = tex_coords[tex_idx - 1];
+				vertex_2.TexCoords.y *= -1;
 				vertex_2.Normal = normals[norm_idx - 1];
 				vertices.push_back(vertex_0);
 				vertices.push_back(vertex_1);

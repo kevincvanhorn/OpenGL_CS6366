@@ -104,6 +104,12 @@ public:
 		GLint location = glGetUniformLocation(program, name.c_str());
 		glUniform1f(location, value);
 	}
+
+	void setInt(const std::string &name, int value) const
+	{
+		GLint location = glGetUniformLocation(program, name.c_str());
+		glUniform1i(location, value);
+	}
 		
 private:
 	void check_compile_error(GLuint shader, std::string type) {

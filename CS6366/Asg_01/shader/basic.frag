@@ -22,7 +22,6 @@ uniform vec3 pLightloc;
 
 uniform vec3 modelColor;
 
-
 // Texture sampler:
 uniform sampler2D TexDiffuse;
 //uniform sampler2D TexNormal;
@@ -68,9 +67,13 @@ void main(){
 	vec3 pSpecular = pLightSpecular * pFSpecular;
 	specular += pSpecular;
 
+
+	//color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
 	
 	if(bDiffuseTex){
-		color = texture(TexDiffuse, texCoord);
+		//color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
+		//color = texture(TexDiffuse, texCoord);
+		color = vec4((ambient + diffuse + specular)*texture(TexDiffuse, texCoord).rgb, 1.0f);
 	}
 	else{
 		// Blinn-Phong Model:
