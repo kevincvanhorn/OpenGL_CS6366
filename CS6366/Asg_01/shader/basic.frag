@@ -23,6 +23,7 @@ uniform vec3 pLightSpecular;
 uniform vec3 pLightAmbient;
 uniform vec3 pLightloc;
 
+uniform vec3 dDirection;
 uniform vec3 modelColor;
 
 // Texture sampler:
@@ -48,8 +49,8 @@ void main(){
 	}
 
 	// Determine vector toward each light
-	vec3 dDirection = vec3(0, 1, 1);
-	dDirection = normalize(dDirection);
+	//vec3 dDirection = vec3(0, 1, 1);
+	//dDirection = normalize(dDirection);
 	vec3 pDirection = normalize(pLightloc - pixelPos);
 
 	// Ambient
@@ -76,11 +77,7 @@ void main(){
 	vec3 pSpecular = pLightSpecular * pFSpecular;
 	specular += pSpecular;
 
-	//color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
-	
 	if(bDiffuseTex){
-		//color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
-		//color = texture(TexDiffuse, texCoord);
 		color = vec4((ambient + diffuse + specular)*texture(TexDiffuse, texCoord).rgb, 1.0f);
 	}
 	else{

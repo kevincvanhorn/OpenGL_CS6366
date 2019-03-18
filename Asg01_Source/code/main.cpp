@@ -262,7 +262,7 @@ int main()
 			glEnable(GL_DEPTH_TEST);
 		}
 
-		// Draw the Obj
+		// Draw the Obj:
 		ourShader.use();
 		ourShader.setVec3("modelColor", colObject[0], colObject[1], colObject[2]); // Set the color of the object
 		ourShader.setVec3("camPos", camera.GetCameraPos());
@@ -285,6 +285,11 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, normalID);
 		ourShader.setInt("TexNormal", 1);
+
+		// Set Directional light:
+		glm::vec3 dDirection(-1*fDLightX, -1*fDLightY, -1*fDLightZ);
+		dDirection = glm::normalize(dDirection);
+		ourShader.setVec3("dDirection", dDirection.x, dDirection.y, dDirection.z);
 
 		// Use Diffuse texture
 		if (bTextureStatus) {	
@@ -689,7 +694,21 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 		return false;
 	}
 
-	SetViewLoc(Min_Z, Max_Z); // Position object in center.
+	camera.Reset();
+
+	if (strObjectFile == "cube.obj") {
+		SetViewLoc(Min_Z, Max_Z); // Position object in center.
+		camera.RotX = 30;
+		camera.localPos.z = 2.3;
+		dPositionZ = 2.3f;
+		gui_PositionZ->setValue(dPositionZ);
+		camera.localPos.y = 1.3;
+		dPositionY = 1.3f;
+		gui_PositionY->setValue(dPositionY);
+	}
+	else {
+		SetViewLoc(Min_Z, Max_Z); // Position object in center.
+	}
 
 	return true;
 }
@@ -874,7 +893,7 @@ void SetDefaults() {
 	dRotValue = 0.0;
 	dNearPlane = camera.NEAR_PLANE;
 	dFarPlane = camera.FAR_PLANE;
-	renderType = ERenderType::Line;
+	renderType = ERenderType::Solid;
 	cullingType = ECullingType::CCW;
 	strObjectFile = "";
 
