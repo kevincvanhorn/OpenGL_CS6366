@@ -3,32 +3,32 @@
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\shader.h(53): warning C4101: 'info_log': unreferenced local variable
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\pointlight.h(28): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\pointlight.h(40): warning C4305: 'initializing': truncation from 'double' to 'float'
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(332): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(336): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
 c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(340): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(369): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(372): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(375): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(378): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(381): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(384): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(519): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(536): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(758): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(344): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(348): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(377): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(380): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(383): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(386): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(389): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(392): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(527): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(544): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(766): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(759): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(767): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(760): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(768): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
           with
           [
               T=float
           ]
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(761): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(762): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(769): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\kevin vanhorn\desktop\graphics\asg01_source\code\main.cpp(770): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   Asg_01.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\CS6366\x64\Debug\Asg_01.exe

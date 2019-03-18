@@ -8,6 +8,7 @@ in mat3 TBN;
 
 uniform bool bUseSmooth;
 uniform bool bDiffuseTex;
+uniform bool bNormalTex;
 
 uniform float shininess;
 
@@ -26,7 +27,7 @@ uniform vec3 modelColor;
 
 // Texture sampler:
 uniform sampler2D TexDiffuse;
-//uniform sampler2D TexNormal;
+uniform sampler2D TexNormal;
 
 out vec4 color; // Color output from the frag shader.
 
@@ -40,9 +41,11 @@ void main(){
 		pixelNormal = pixelNormalF;
 	}
 
-	pixelNormal = texture(TexDiffuse, texCoord).rgb; // TexNormal
-	pixelNormal = normalize(pixelNormal * 2.0 - 1.0);   
-	pixelNormal = normalize(TBN * pixelNormal); 
+	if(bNormalTex){
+		pixelNormal = texture(TexNormal, texCoord).rgb; // TexNormal
+		pixelNormal = normalize(pixelNormal * 2.0 - 1.0);   
+		pixelNormal = normalize(TBN * pixelNormal); 
+	}
 
 	// Determine vector toward each light
 	vec3 dDirection = vec3(0, 1, 1);
@@ -72,7 +75,6 @@ void main(){
 	float pFSpecular = pow(dot(pH, pixelNormal), shininess);
 	vec3 pSpecular = pLightSpecular * pFSpecular;
 	specular += pSpecular;
-
 
 	//color = vec4((ambient + diffuse + specular)*modelColor, 1.0f);
 	

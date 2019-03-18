@@ -191,7 +191,7 @@ void SetViewLoc(float min, float max);
 
 void ResetPointLight();
 
-void LoadImage(std::string img_path, int width, int height);
+void LoadImage(std::string img_path, int width, int height, unsigned int ID);
 void LoadTextures();
 
 void InitTexturesGL();
@@ -279,19 +279,27 @@ int main()
 			ourShader.setBool("bUseSmooth", true);
 		}
 
-		// Use Diffuse texture
-		if (bTextureStatus) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, diffuseID);
-		}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseID);
+		ourShader.setInt("TexDiffuse", 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, normalID);
+		ourShader.setInt("TexNormal", 1);
 
-		if (bTextureStatus) {
-			ourShader.setInt("TexDiffuse", 0);
+		// Use Diffuse texture
+		if (bTextureStatus) {	
 			ourShader.setBool("bDiffuseTex", true);
 		}
 		else {
 			ourShader.setBool("bDiffuseTex", false);
+		}
 
+		// Use Normal texture
+		if (bNormalMapStatus) {
+			ourShader.setBool("bNormalTex", true);
+		}
+		else {
+			ourShader.setBool("bNormalTex", false);
 		}
 
 		// Direction Light
@@ -489,7 +497,7 @@ void ResetPointLight()
 void InitTexturesGL()
 {
 	glGenTextures(1, &diffuseID);
-	//glGenTextures(1, &normalID);
+	glGenTextures(1, &normalID);
 
 	//glActiveTexture(GL_TEXTURE0);
 
@@ -497,11 +505,11 @@ void InitTexturesGL()
 	//glBindTexture(GL_TEXTURE_2D, normalID);
 }
 
-void LoadImage(std::string img_path, int width, int height)
+void LoadImage(std::string img_path, int width, int height, unsigned int ID)
 {
 	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
 	if (image) {
-		glBindTexture(GL_TEXTURE_2D, diffuseID);
+		glBindTexture(GL_TEXTURE_2D, ID);
 		
 		//printf("FOUND: Texture found.");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -553,13 +561,13 @@ void LoadTextures()
 		std::string texPath = path;
 		texPath.append("_diffuse.png");
 		std::cout << texPath << "\n";
-		//LoadImage(texPath, imgX, imgY);
+		LoadImage(texPath, imgX, imgY, diffuseID);
 	}
 	if (true) { //bNormalMapStatus
 		std::string normPath = path;
 		normPath.append("_normal.png");
 		std::cout << normPath << "\n";
-		LoadImage(normPath, imgX, imgY);
+		LoadImage(normPath, imgX, imgY, normalID);
 	}
 }
 
