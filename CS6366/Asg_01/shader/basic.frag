@@ -4,6 +4,8 @@ in vec2 texCoord;
 smooth in vec3 pixelNormalS;
 flat in vec3 pixelNormalF;
 
+in mat3 TBN;
+
 uniform bool bUseSmooth;
 uniform bool bDiffuseTex;
 
@@ -37,6 +39,10 @@ void main(){
 	else{
 		pixelNormal = pixelNormalF;
 	}
+
+	pixelNormal = texture(TexDiffuse, texCoord).rgb; // TexNormal
+	pixelNormal = normalize(pixelNormal * 2.0 - 1.0);   
+	pixelNormal = normalize(TBN * pixelNormal); 
 
 	// Determine vector toward each light
 	vec3 dDirection = vec3(0, 1, 1);

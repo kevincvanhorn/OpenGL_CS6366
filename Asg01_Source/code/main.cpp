@@ -86,13 +86,12 @@ enum EDepthType{
 
 // Holds data read from the obj file.
 struct Vertex {
-	// Position
 	glm::vec3 Position;
-	// Normal
 	glm::vec3 Normal;
-	// TexCoords
 	glm::vec2 TexCoords;
-	// Color
+	glm::vec3 Tangent;
+	glm::vec3 BiTangent;
+
 	glm::vec3 Color;
 };
 
@@ -421,6 +420,15 @@ void InitModel() {
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
+	// Tangent attribute:
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+
+	// BiTangent attribute:
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
+
+
 	InitTexturesGL();
 	LoadTextures();
 
@@ -503,6 +511,9 @@ void LoadImage(std::string img_path, int width, int height)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		SOIL_free_image_data(image);
+		glBindTexture(GL_TEXTURE_2D, 0); // Unbind
 	}
 	else {
 		printf("ERROR: Texture not found. %s", img_path);
@@ -529,7 +540,7 @@ void LoadTextures()
 				imgX = imgY = 256;
 			}
 			else { imgX = imgY = 1024; }
-			printf("%d",imgX);
+			printf("%d\n",imgX);
 		}
 		else {
 			printf("ERROR: Invalid object name for texture loading.");
@@ -538,12 +549,16 @@ void LoadTextures()
 	}
 
 	if (true){//bTextureStatus) {
-		std::string texPath = path.append("_diffuse.png");
+
+		std::string texPath = path;
+		texPath.append("_diffuse.png");
 		std::cout << texPath << "\n";
-		LoadImage(texPath, imgX, imgY);
+		//LoadImage(texPath, imgX, imgY);
 	}
-	if (bNormalMapStatus) {
-		std::string normPath = path.append("_normal.png");
+	if (true) { //bNormalMapStatus
+		std::string normPath = path;
+		normPath.append("_normal.png");
+		std::cout << normPath << "\n";
 		LoadImage(normPath, imgX, imgY);
 	}
 }
@@ -629,6 +644,32 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 				vertex_2.TexCoords = tex_coords[tex_idx - 1];
 				vertex_2.TexCoords.y *= -1;
 				vertex_2.Normal = normals[norm_idx - 1];
+
+				// Compute Triangle tangent/bi-tangent:
+				glm::vec2 UV1 = vertex_1.TexCoords - vertex_0.TexCoords;
+				glm::vec2 UV2 = vertex_2.TexCoords - vertex_0.TexCoords;
+				glm::vec3 V1 = vertex_1.Position - vertex_0.Position;
+				glm::vec3 V2 = vertex_2.Position - vertex_0.Position;
+				float d = 1.0f / (UV1.x * UV2.y - UV1.y * UV2.x);
+				glm::vec3 tangent;// = (V1 * UV2.y - V2 * UV1.y)*d;
+				tangent.x = d * (UV2.y * V1.x - UV1.y * V2.x);
+				tangent.y = d * (UV2.y * V1.y - UV1.y * V2.y);
+				tangent.z = d * (UV2.y * V1.z - UV1.y * V2.z);
+				tangent = glm::normalize(tangent);
+				
+				glm::vec3 bitangent;// = (V2 * UV1.x - V1 * UV2.x)*d;
+				bitangent.x = d * (-UV2.x * V1.x + UV1.x * V2.x);
+				bitangent.y = d * (-UV2.x * V1.y + UV1.x * V2.y);
+				bitangent.z = d * (-UV2.x * V1.z + UV1.x * V2.z);
+				bitangent = glm::normalize(bitangent);
+
+				vertex_0.Tangent = tangent;
+				vertex_1.Tangent = tangent;
+				vertex_2.Tangent = tangent;
+				vertex_0.BiTangent = bitangent;
+				vertex_1.BiTangent = bitangent;
+				vertex_2.BiTangent = bitangent;
+
 				vertices.push_back(vertex_0);
 				vertices.push_back(vertex_1);
 				vertices.push_back(vertex_2);
