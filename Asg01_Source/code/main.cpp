@@ -17,6 +17,9 @@
 // Other includes
 #include "Shader.h"
 #include "nanogui/nanogui.h"
+#include "nanogui/slider.h"
+#include "nanogui/layout.h"
+#include "nanogui/textbox.h"
 #include <glm/glm.hpp>
 #include <SOIL.h>
 
@@ -30,6 +33,7 @@
 #define GUI_COLOR nanogui::detail::FormWidget<nanogui::Color, std::true_type>
 #define GUI_BOOL nanogui::detail::FormWidget<bool, std::true_type>
 #define GUI_FLOAT nanogui::detail::FormWidget<float, std::integral_constant<bool, true>> 
+#define GUI_INT nanogui::detail::FormWidget<int, std::integral_constant<bool, true>> 
 
 using namespace nanogui;
 
@@ -62,27 +66,16 @@ enum ERotType {
 enum ERenderType {
 	Line,
 	Point,
-	Solid
+	Triangle
 };
 
-// Specifies direction of culling.
-enum ECullingType {
-	CW,
-	CCW
+// Pre-loaded model names.
+enum EModelName {
+	HEAD,
+	TEAPOT,
+	BUCKY,
+	BONSAI
 };
-
-// Model shading type.
-enum EShadingType {
-	SMOOTH,
-	FLAT
-};
-
-// For depth test against camera Z value.
-enum EDepthType{
-	LESS,
-	ALWAYS
-};
-
 
 // Holds data read from the obj file.
 struct Vertex {
@@ -102,76 +95,37 @@ PointLight pointLight(camera.GetCameraPos());
 
 // Gui variable handles to edit fields in the gui:
 nanogui::detail::FormWidget<ERenderType, std::integral_constant<bool, true>>* gui_RenderType;
-nanogui::detail::FormWidget<ECullingType, std::integral_constant<bool, true>>* gui_CullingType;
-nanogui::detail::FormWidget<EShadingType, std::integral_constant<bool, true>>* gui_ShadingType;
-nanogui::detail::FormWidget<EDepthType, std::integral_constant<bool, true>>* gui_DepthType;
+nanogui::detail::FormWidget<EModelName, std::integral_constant<bool, true>>* gui_ModelName;
 
 GUI_COLOR* gui_ColObject;
-GUI_STRING* gui_ObjectFile;
+GUI_STRING* gui_ImageBar;
 GUI_DOUBLE* gui_RotValue;
 GUI_DOUBLE* gui_PositionX;
 GUI_DOUBLE* gui_PositionY;
 GUI_DOUBLE* gui_PositionZ;
-GUI_DOUBLE* gui_NearPlane;
-GUI_DOUBLE* gui_FarPlane;
 
-GUI_FLOAT* gui_ObjectShininess;
-GUI_BOOL* gui_DLightStatus;
-GUI_COLOR* gui_DLightAmbient;
-GUI_COLOR* gui_DLightDiffuse;
-GUI_COLOR* gui_DLightSpecular;
-GUI_BOOL* gui_PointLightStatus;
-GUI_COLOR* gui_PLightAmbient;
-GUI_COLOR* gui_PLightDiffuse;
-GUI_COLOR* gui_PLightSpecular;
-GUI_BOOL* gui_PLightRotateX;
-GUI_BOOL* gui_PLightRotateY;
-GUI_BOOL* gui_PLightRotateZ;
-
-GUI_FLOAT* gui_DLightX;
-GUI_FLOAT* gui_DLightY;
-GUI_FLOAT* gui_DLightZ;
-
-GUI_BOOL* gui_TextureStatus;
-GUI_BOOL* gui_NormalMapStatus;
+GUI_BOOL* gui_bTransferFunctionSign;
+GUI_INT* gui_SamplingRate;
 
 // Variable defaults modified in the gui:
-Color colObject(1.0f, 1.0f, 1.0f, 1.0f); // color of the object
+Color colObject(1.0f, 0.53f, 0.29f, 1.0f); // color of the object
 double dPositionX = 0.0;
 double dPositionY = 0.0;
 double dPositionZ = -10.0;
 double dRotValue = 0.0;
 double dNearPlane = camera.NEAR_PLANE;
 double dFarPlane = camera.FAR_PLANE;
-ERenderType renderType = ERenderType::Solid;
-ECullingType cullingType = ECullingType::CCW;
-EShadingType shadingType = EShadingType::SMOOTH;
-EDepthType depthType = EDepthType::LESS;
+ERenderType renderType = ERenderType::Triangle;
+
+std::string strObjectFile2;
+EModelName modelName = EModelName::TEAPOT;
+std::string strImageBar = "./objs/colorbar.png";
+bool bTransferFunctionSign = true;
+int samplingRate = 2000;
+
+std::string strObjectFile;
 
 // Second Window:
-float fObjectShininess = 32;
-bool bDirectionLightStatus = true;
-bool bPointLightStatus = false;
-bool bPointLightRotateX = false;
-bool bPointLightRotateY = false;
-bool bPointLightRotateZ = false;
-Color cDLightAmbient(0.0f, 0.0f, 0.0f, 1.f);
-Color cDLightDiffuse(0.0f, 0.0f, 0.0f, 1.f);
-Color cDLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
-Color cPLightAmbient(0.0f, 0.0f, 0.0f, 1.f);
-Color cPLightDiffuse(0.0f, 0.0f, 0.0f, 1.f);
-Color cPLightSpecular(0.0f, 0.0f, 0.0f, 1.f);
-
-float fDLightX = 0;
-float fDLightY = -1;
-float fDLightZ = -1;
-bool bTextureStatus = true;
-bool bNormalMapStatus = false;
-
-unsigned int diffuseID;
-unsigned int normalID;
-
-std::string strObjectFile = "";
 
 // Render Variables:
 Screen *screen = nullptr;
@@ -186,23 +140,17 @@ bool LoadModel(std::vector<Vertex> &vertices);
 void SetupGUI(GLFWwindow* window);
 void InitModel();
 void SetColor();
-void SetCulling();
 void SetViewLoc(float min, float max);
 
-void ResetPointLight();
-
-void LoadImage(std::string img_path, int width, int height, unsigned int ID);
-void LoadTextures();
-
-void InitTexturesGL();
+void UpdateModelName();
+void OnSetSamplingRate(); // TODO: Implement SamplingRate function.
+void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar);
 
 // Main function with intialization and game loop.
 int main()
 {
 	// Init GLFW
 	glfwInit();
-	
-	
 
 	// Set all the required options for GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -243,24 +191,16 @@ int main()
 
 	GLuint MatrixID = glGetUniformLocation(ourShader.program, "MVP");
 
-	strObjectFile = "cyborg.obj";
 	ReloadObjectModel();
 
 	// Game Loop:
 	while (!glfwWindowShouldClose(window))
 	{
-		SetCulling(); // Specify culling variables.
 		glfwPollEvents();
 
 		// Clear the colorbuffer
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if (depthType == EDepthType::ALWAYS) {
-		}
-		else {
-			glEnable(GL_DEPTH_TEST);
-		}
 
 		// Draw the Obj:
 		ourShader.use();
@@ -268,80 +208,13 @@ int main()
 		ourShader.setVec3("camPos", camera.GetCameraPos());
 		pointLight.Loc = camera.GetCameraPos();
 
-		pointLight.UpdatePos(bPointLightRotateX, bPointLightRotateY, bPointLightRotateZ);
-		
-		ourShader.setFloat("shininess", fObjectShininess);
-
-		if (shadingType == EShadingType::FLAT) {
-			ourShader.setBool("bUseSmooth", false);
-		}
-		else {
-			ourShader.setBool("bUseSmooth", true);
-		}
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseID);
-		ourShader.setInt("TexDiffuse", 0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, normalID);
-		ourShader.setInt("TexNormal", 1);
-
-		// Set Directional light:
-		glm::vec3 dDirection(-1*fDLightX, -1*fDLightY, -1*fDLightZ);
-		dDirection = glm::normalize(dDirection);
-		ourShader.setVec3("dDirection", dDirection.x, dDirection.y, dDirection.z);
-
-		// Use Diffuse texture
-		if (bTextureStatus) {	
-			ourShader.setBool("bDiffuseTex", true);
-		}
-		else {
-			ourShader.setBool("bDiffuseTex", false);
-		}
-
-		// Use Normal texture
-		if (bNormalMapStatus) {
-			ourShader.setBool("bNormalTex", true);
-		}
-		else {
-			ourShader.setBool("bNormalTex", false);
-		}
-
-		// Direction Light
-		if (bDirectionLightStatus) {
-			ourShader.setVec3("dLightDiffuse", cDLightDiffuse[0], cDLightDiffuse[1], cDLightDiffuse[2]);
-			ourShader.setVec3("dLightSpecular", cDLightSpecular[0], cDLightSpecular[1], cDLightSpecular[2]);
-			ourShader.setVec3("dLightAmbient", cDLightAmbient[0], cDLightAmbient[1], cDLightAmbient[2]);
-		}
-		else {
-			ourShader.setVec3("dLightDiffuse", 0, 0, 0);
-			ourShader.setVec3("dLightSpecular", 0, 0, 0);
-			ourShader.setVec3("dLightAmbient", 0, 0, 0);
-		}
-
-		// Point Light
-		if (bPointLightStatus) {
-			ourShader.setVec3("pLightDiffuse", cPLightDiffuse[0], cPLightDiffuse[1], cPLightDiffuse[2]);
-			ourShader.setVec3("pLightSpecular", cPLightSpecular[0], cPLightSpecular[1], cPLightSpecular[2]);
-			ourShader.setVec3("pLightAmbient", cPLightAmbient[0], cPLightAmbient[1], cPLightAmbient[2]);
-			ourShader.setVec3("pLightloc", pointLight.getLoc());
-
-			//printf("%f \n",pointLight.getLoc().x);
-		}
-		else {
-			ourShader.setVec3("pLightDiffuse", 0, 0, 0);
-			ourShader.setVec3("pLightSpecular", 0, 0, 0);
-			ourShader.setVec3("pLightAmbient", 0, 0, 0);
-			ourShader.setVec3("pLightLoc", pointLight.getLoc());
-		}
-		
 		glBindVertexArray(VAO);
 
 		if (Vertices.size() > 0) {
 			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &camera.GetMVPMatrix()[0][0]);
 			
 			// Set draw type:
-			if (renderType == ERenderType::Solid) {
+			if (renderType == ERenderType::Triangle) { // TODO: Implement triangle draw type. Currently the previous iteration of solid.
 				glDrawArrays(GL_TRIANGLES, 0, Vertices.size());
 			}
 			else if (renderType == ERenderType::Point) {
@@ -441,10 +314,6 @@ void InitModel() {
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
 
-
-	InitTexturesGL();
-	LoadTextures();
-
 	glBindVertexArray(0); // Unbind VAO
 }
 
@@ -456,20 +325,6 @@ void SetColor()
 	}
 	if (Vertices.size() > 0) {
 		InitModel();
-	}
-}
-
-/* Configures OpenGl vars for culling. */
-void SetCulling()
-{
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	if (cullingType == ECullingType::CCW) {
-		glFrontFace(GL_CCW);
-	}
-	else{
-		glFrontFace(GL_CW);
 	}
 }
 
@@ -494,86 +349,45 @@ void SetViewLoc(float min, float max)
 	gui_PositionZ->setValue(dPositionZ);
 }
 
-void ResetPointLight()
+// Update the file for a given model name;
+void UpdateModelName()
 {
-	pointLight.MovedLoc = pointLight.Loc;
+	if (modelName == EModelName::BONSAI) {
+		strObjectFile;
+	}
+	else if (modelName == EModelName::BUCKY) {
+		strObjectFile;
+	}
+	else if (modelName == EModelName::HEAD) {
+		strObjectFile;
+	}
+	if (modelName == EModelName::TEAPOT) {
+		strObjectFile;
+	}
 }
 
-void InitTexturesGL()
+void OnSetSamplingRate()
 {
-	glGenTextures(1, &diffuseID);
-	glGenTextures(1, &normalID);
-
-	//glActiveTexture(GL_TEXTURE0);
-
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, normalID);
 }
 
-void LoadImage(std::string img_path, int width, int height, unsigned int ID)
-{
-	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
-	if (image) {
-		glBindTexture(GL_TEXTURE_2D, ID);
-		
-		//printf("FOUND: Texture found.");
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
+void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar) {
+	Widget* panel = new Widget(nanoguiWindow2);
+	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gui->addWidget(label, panel);
+	
+	Slider *slider = new Slider(panel);
+	slider->setValue(callbackVar);
+	slider->setFixedWidth(80);
 
-		SOIL_free_image_data(image);
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind
-	}
-	else {
-		printf("ERROR: Texture not found. %s", img_path);
-	}
-
-}
-
-void LoadTextures()
-{
-	std::string path = strObjectFile;
-	int imgX, imgY;
-
-	if (strObjectFile.length() > 0) {
-		const std::string obj(".obj");
-		if (path.size() > obj.size() &&
-			path.substr(path.size() - obj.size()) == ".obj") {
-			path = path.substr(0, path.length() - obj.length());
-			std::cout << path;
-			if (path.compare("cyborg") !=0 && path.compare("cube") !=0) {
-				printf("ERROR: Texture maps not provided for this object:  _%s_ ", path);
-				return;
-			}
-			if (path == "cube") {
-				imgX = imgY = 256;
-			}
-			else { imgX = imgY = 1024; }
-			printf("%d\n",imgX);
-		}
-		else {
-			printf("ERROR: Invalid object name for texture loading.");
-			return;
-		}
-	}
-
-	if (true){//bTextureStatus) {
-
-		std::string texPath = path;
-		texPath.append("_diffuse.png");
-		std::cout << texPath << "\n";
-		LoadImage(texPath, imgX, imgY, diffuseID);
-	}
-	if (true) { //bNormalMapStatus
-		std::string normPath = path;
-		normPath.append("_normal.png");
-		std::cout << normPath << "\n";
-		LoadImage(normPath, imgX, imgY, normalID);
-	}
+	TextBox *textBox = new TextBox(panel);
+	textBox->setFixedSize(Vector2i(60, 25));
+	textBox->setValue(value);
+	slider->setCallback([textBox](float value) { textBox->setValue(std::to_string(value));});
+	slider->setFinalCallback([&](float value) { callbackVar = value; });
+	textBox->setFixedSize(Vector2i(100, 25));
+	textBox->setFontSize(20);
+	textBox->setAlignment(TextBox::Alignment::Center);
 }
 
 /*
@@ -696,7 +510,7 @@ bool LoadModel(std::vector<Vertex> &vertices) {
 
 	camera.Reset();
 
-	if (strObjectFile == "cube.obj") {
+	if (strObjectFile == "DNE.obj") {
 		SetViewLoc(Min_Z, Max_Z); // Position object in center.
 		camera.RotX = 30;
 		camera.localPos.z = 2.3;
@@ -756,84 +570,64 @@ void SetupGUI(GLFWwindow* window)
 
 	// Camera viewing plane & render settings:
 	gui->addGroup("Configuration");
-	gui_NearPlane = gui->addVariable("Z Near", dNearPlane);
-	gui_FarPlane = gui->addVariable("Z Far", dFarPlane);
 
-	gui_NearPlane->setSpinnable(true);
-	gui_FarPlane->setSpinnable(true);
+	gui_ModelName = gui->addVariable("Model Name", modelName, enabled);
+	gui_ModelName->setItems({ "HEAD", "TEAPOT", "BUCKY", "BONSAI" });
+	UpdateModelName();
 
 	gui_RenderType = gui->addVariable("Render Type", renderType, enabled);
-	gui_RenderType->setItems({ "Line", "Point", "Solid" });
+	gui_RenderType->setItems({ "Line", "Point", "Triangle" });
 
-	gui_CullingType = gui->addVariable("Culling Type", cullingType, enabled);
-	gui_CullingType->setItems({ "CW", "CCW" });
-
-	gui_ShadingType = gui->addVariable("Shading Type", shadingType, enabled);
-	gui_ShadingType->setItems({ "SMOOTH", "FLAT" });
-
-	gui_DepthType = gui->addVariable("Depth Type", depthType, enabled);
-	gui_DepthType->setItems({ "LESS", "ALWAYS" });
-
-	gui_ObjectFile = gui->addVariable("Model Name", strObjectFile);
+	gui_ImageBar = gui->addVariable("Colorbar Image Path:", strImageBar);
 
 	gui->addButton("Reload Model", &ReloadObjectModel);
 	gui->addButton("Reset Camera", &ResetGui);
 
+	// Volume Rendering settings:
+	gui->addGroup("Volume Rendering");
+	gui_ColObject = gui->addVariable("Object Color", colObject);
+	gui_bTransferFunctionSign = gui->addVariable("Transfer Function Sign", bTransferFunctionSign);
+
+	gui_SamplingRate = gui->addVariable("Sampling Rate s (unit slice number)", samplingRate);
+	gui_SamplingRate->setSpinnable(true);
+
 	// Callbacks to set global variables when changed in the gui:
-	gui_ObjectFile->setCallback([](const std::string &str) { strObjectFile = str; });
+	gui_ImageBar->setCallback([](const std::string &str) { strImageBar = str; });
 	gui_RotValue->setCallback([](double val) { dRotValue = val; });
 	gui_PositionX->setCallback([](double val) { dPositionX = val; camera.localPos.x = dPositionX; });
 	gui_PositionY->setCallback([](double val) { dPositionY = val; camera.localPos.y = dPositionY; });
 	gui_PositionZ->setCallback([](double val) { dPositionZ = val; camera.localPos.z = dPositionZ; });
-	gui_FarPlane->setCallback([](double val) { dFarPlane = val; camera.farPlane = dFarPlane; });
-	gui_NearPlane->setCallback([](double val) { dNearPlane = val; camera.nearPlane = dNearPlane; });
 
 	gui_RenderType->setCallback([](const ERenderType &val) {renderType = val;});
-	gui_CullingType->setCallback([](const ECullingType &val) {cullingType = val; SetCulling(); });
-	gui_ShadingType->setCallback([](const EShadingType &val) {shadingType = val; });
-	gui_DepthType->setCallback([](const EDepthType &val) {depthType = val; });
+	gui_ModelName->setCallback([](const EModelName &val) {modelName = val; UpdateModelName(); });
+
+	gui_ColObject->setCallback([](const Color &c) {colObject = c; });
+	gui_SamplingRate->setCallback([](int val) { samplingRate = val; OnSetSamplingRate(); });
 
 	// SECOND WINDOW ---------------------------------------------------
-	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(230, 10), "Nanogui Control Bar 2"); // Gui Header
+	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(1000, 10), "Nanogui Control Bar 2"); // Gui Header
+	
+	float viewSlider = 1.0f;
+	float slider0 = 0.161290f;
+	float slider1 = 0.564516f;
+	float slider2 = 0.677419f;
+	float slider3 = 0.612903f;
+	float slider4 = 0.790323f;
+	float slider5 = 0.677419f;
+	float slider6 = 0.790323f;
+	float slider7 = 0.887097f;
 
-	// Object color:
-	gui->addGroup("Lighting");
-	gui_ColObject = gui->addVariable("Object Color", colObject);
+	// SLIDERS
+	AddSlider(gui, nanoguiWindow2, "View Slider", "1.000000", viewSlider);
+	AddSlider(gui, nanoguiWindow2, "Slider 0", "0.161290", slider0);
+	AddSlider(gui, nanoguiWindow2, "Slider 1", "0.564516", slider1);
+	AddSlider(gui, nanoguiWindow2, "Slider 2", "0.677419", slider2);
+	AddSlider(gui, nanoguiWindow2, "Slider 3", "0.612903", slider3);
+	AddSlider(gui, nanoguiWindow2, "Slider 4", "0.790323", slider4);
+	AddSlider(gui, nanoguiWindow2, "Slider 5", "0.677419", slider5);
+	AddSlider(gui, nanoguiWindow2, "Slider 6", "0.790323", slider6);
+	AddSlider(gui, nanoguiWindow2, "Slider 7", "0.887097", slider7);
 
-	gui_ObjectShininess = gui->addVariable("Object Shininess", fObjectShininess);
-
-	gui_DLightStatus = gui->addVariable("Direction Light Status", bDirectionLightStatus);
-
-	gui_DLightX = gui->addVariable("Direction Light Direction X", fDLightX);
-	gui_DLightY = gui->addVariable("Direction Light Direction Y", fDLightY);
-	gui_DLightZ = gui->addVariable("Direction Light Direction Z", fDLightZ);
-
-
-	gui_DLightAmbient = gui->addVariable("Direction Light Ambient Color", cDLightAmbient);
-	gui_DLightDiffuse = gui->addVariable("Direction Light Ambient Diffuse", cDLightDiffuse);
-	gui_DLightSpecular = gui->addVariable("Direction Light Ambient Specular", cDLightSpecular);
-
-	gui_PointLightStatus = gui->addVariable("Point Light Status", bPointLightStatus);
-	gui_PLightAmbient = gui->addVariable("Point  Light Ambient Color", cPLightAmbient);
-	gui_PLightDiffuse = gui->addVariable("Point Light Ambient Diffuse", cPLightDiffuse);
-	gui_PLightSpecular = gui->addVariable("Point Light Ambient Specular", cPLightSpecular);
-
-	gui_PLightRotateX = gui->addVariable("Point Light Rotate on X", bPointLightRotateX);
-	gui_PLightRotateY = gui->addVariable("Point Light Rotate on Y", bPointLightRotateY);
-	gui_PLightRotateZ = gui->addVariable("Point Light Rotate on Z", bPointLightRotateZ);
-
-	gui->addButton("Reset Point Light", &ResetPointLight);
-
-	// Set Callbacks
-	//gui_ColObject->setFinalCallback([](const Color &c) { colObject = c; SetColor(); }); // TODO: Change this from final to normal callback
-	gui_ColObject->setCallback([](const Color &c) {colObject = c; });
-	gui_DLightAmbient->setCallback([](const Color &c) {cDLightAmbient = c; });
-	gui_PLightSpecular->setCallback([](const Color &c) {cPLightSpecular = c; });
-	gui_PLightRotateX->setCallback([](bool b) {bPointLightRotateX = b; });
-
-	// ASSIGNMENT 3 - -----------------------------------------------
-	gui_TextureStatus = gui->addVariable("Texture Status", bTextureStatus);
-	gui_NormalMapStatus = gui->addVariable("Normal Map Status", bNormalMapStatus);
 
 	// Init screen:
 	screen->setVisible(true);
@@ -893,9 +687,11 @@ void SetDefaults() {
 	dRotValue = 0.0;
 	dNearPlane = camera.NEAR_PLANE;
 	dFarPlane = camera.FAR_PLANE;
-	renderType = ERenderType::Solid;
-	cullingType = ECullingType::CCW;
+	renderType = ERenderType::Triangle;
 	strObjectFile = "";
+	strImageBar = "";
+	modelName = EModelName::TEAPOT;
+	UpdateModelName();
 
 	camera.Reset();
 }
@@ -905,14 +701,11 @@ void ResetGui()
 {
 	SetDefaults();
 
-	gui_ObjectFile->setValue(strObjectFile);
+	gui_ImageBar->setValue(strImageBar);
 	gui_RotValue->setValue(dRotValue);
 	gui_PositionX->setValue(dPositionX);
 	gui_PositionY->setValue(dPositionY);
 	gui_PositionZ->setValue(dPositionZ);
-	gui_NearPlane->setValue(dNearPlane);
-	gui_FarPlane->setValue(dFarPlane);
 	gui_ColObject->setValue(colObject);
 	gui_RenderType->setValue(renderType);
-	gui_CullingType->setValue(cullingType);
 }
