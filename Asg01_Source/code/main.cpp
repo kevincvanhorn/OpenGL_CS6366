@@ -122,6 +122,18 @@ EModelName modelName = EModelName::TEAPOT;
 std::string strImageBar = "./objs/colorbar.png";
 bool bTransferFunctionSign = true;
 int samplingRate = 2000;
+float viewSlider = 1.0f;
+float slider0 = 0.161290f;
+float slider1 = 0.564516f;
+float slider2 = 0.677419f;
+float slider3 = 0.612903f;
+float slider4 = 0.790323f;
+float slider5 = 0.677419f;
+float slider6 = 0.790323f;
+float slider7 = 0.887097f;
+
+VectorXf gVector(8);
+Graph *graph;
 
 std::string strObjectFile;
 
@@ -145,6 +157,8 @@ void SetViewLoc(float min, float max);
 void UpdateModelName();
 void OnSetSamplingRate(); // TODO: Implement SamplingRate function.
 void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar);
+
+void SetGraphValues();
 
 // Main function with intialization and game loop.
 int main()
@@ -383,8 +397,8 @@ void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string la
 	TextBox *textBox = new TextBox(panel);
 	textBox->setFixedSize(Vector2i(60, 25));
 	textBox->setValue(value);
-	slider->setCallback([textBox](float value) { textBox->setValue(std::to_string(value));});
-	slider->setFinalCallback([&](float value) { callbackVar = value; });
+	slider->setCallback([textBox](float value) { textBox->setValue(std::to_string(value)); });
+	slider->setFinalCallback([&](float value) { callbackVar = value; SetGraphValues(); });
 	textBox->setFixedSize(Vector2i(100, 25));
 	textBox->setFontSize(20);
 	textBox->setAlignment(TextBox::Alignment::Center);
@@ -606,19 +620,23 @@ void SetupGUI(GLFWwindow* window)
 
 	// SECOND WINDOW ---------------------------------------------------
 	ref<Window> nanoguiWindow2 = gui->addWindow(Eigen::Vector2i(1000, 10), "Nanogui Control Bar 2"); // Gui Header
-	
-	float viewSlider = 1.0f;
-	float slider0 = 0.161290f;
-	float slider1 = 0.564516f;
-	float slider2 = 0.677419f;
-	float slider3 = 0.612903f;
-	float slider4 = 0.790323f;
-	float slider5 = 0.677419f;
-	float slider6 = 0.790323f;
-	float slider7 = 0.887097f;
 
-	// SLIDERS
 	AddSlider(gui, nanoguiWindow2, "View Slider", "1.000000", viewSlider);
+
+	// GRAPH
+	Widget* panel = new Widget(nanoguiWindow2);
+	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 20, 20));
+	gui->addWidget("Transfer Function", panel);
+	graph = new Graph(panel);
+
+	graph->setFixedSize(Vector2i(196, 196)); // 7 * 28
+	graph->setHeader("Alpha: (0,1)");
+	graph->setCaption("Intensity: (0:255)");
+	graph->setFontSize(20);
+	graph->setTextColor(nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+	SetGraphValues();
+
 	AddSlider(gui, nanoguiWindow2, "Slider 0", "0.161290", slider0);
 	AddSlider(gui, nanoguiWindow2, "Slider 1", "0.564516", slider1);
 	AddSlider(gui, nanoguiWindow2, "Slider 2", "0.677419", slider2);
@@ -627,7 +645,7 @@ void SetupGUI(GLFWwindow* window)
 	AddSlider(gui, nanoguiWindow2, "Slider 5", "0.677419", slider5);
 	AddSlider(gui, nanoguiWindow2, "Slider 6", "0.790323", slider6);
 	AddSlider(gui, nanoguiWindow2, "Slider 7", "0.887097", slider7);
-
+	// END GRAPH
 
 	// Init screen:
 	screen->setVisible(true);
@@ -678,6 +696,21 @@ void SetupGUI(GLFWwindow* window)
 	);
 }
 
+void SetGraphValues()
+{
+	gVector(0) = slider0;
+	gVector(1) = slider1;
+	gVector(2) = slider2;
+	gVector(3) = slider3;
+	gVector(4) = slider4;
+	gVector(5) = slider5;
+	gVector(6) = slider6;
+	gVector(7) = slider7;
+	if (graph) {
+		graph->setValues(gVector);
+	}
+}
+
 /* Reset variables used in the gui to their default values. */
 void SetDefaults() {
 	colObject = nanogui::Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -708,4 +741,27 @@ void ResetGui()
 	gui_PositionZ->setValue(dPositionZ);
 	gui_ColObject->setValue(colObject);
 	gui_RenderType->setValue(renderType);
+}
+
+GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
+	size_t size = dimension[0] * dimension[1] * dimension[2];
+
+	FILE *fp;
+	GLubyte *data = new GLubyte[size];			  // 8bit
+	if (!(fp = fopen(texture_path.c_str(), "rb"))) {
+		std::cout << "Error: opening .raw file failed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	else {
+		std::cout << "OK: open .raw file successed" << std::endl;
+	}
+	if (fread(data, sizeof(char), size, fp) != size) {
+		std::cout << "Error: read .raw file failed" << std::endl;
+		exit(1);
+	}
+	else {
+		std::cout << "OK: read .raw file successed" << std::endl;
+	}
+	fclose(fp);
+	return data;
 }
