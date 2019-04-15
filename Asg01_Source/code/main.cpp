@@ -134,8 +134,17 @@ float slider7 = 0.887097f;
 
 VectorXf gVector(8);
 Graph *graph;
+unsigned int texmapID;
+Color emmisiveColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 std::string strObjectFile;
+
+GLfloat cube_vertices[24] = {
+0.0, 0.0, 0.0,  0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 1.0, 1.0,
+1.0, 0.0, 0.0,  1.0, 0.0, 1.0,  1.0, 1.0, 0.0,  1.0, 1.0, 1.0 };
+GLuint cube_indices[36] = {
+	1,5,7,  7,3,1,  0,2,6,  6,4,0,  0,1,3,   3,2,0,  7,5,4,  4,6,7,  2,3,7,  7,6,2,  1,0,4,  4,5,1 };
+GLuint cube_edges[24]{ 1,5,  5,7,  7,3,  3,1,  0,4,  4,6,  6,2,  2,0,  0,1,  2,3,  4,5,  6,7 };
 
 // Second Window:
 
@@ -159,6 +168,10 @@ void OnSetSamplingRate(); // TODO: Implement SamplingRate function.
 void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar);
 
 void SetGraphValues();
+void LoadTextures();
+bool LoadCube(std::vector<Vertex> &vertices);
+
+GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension);
 
 // Main function with intialization and game loop.
 int main()
@@ -216,11 +229,22 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glEnable(GL_TEXTURE_3D);
+
 		// Draw the Obj:
 		ourShader.use();
 		ourShader.setVec3("modelColor", colObject[0], colObject[1], colObject[2]); // Set the color of the object
+		ourShader.setVec3("emmisiveColor", emmisiveColor[0], emmisiveColor[1], emmisiveColor[2]); // TODO: Calculate emmisive color.
 		ourShader.setVec3("camPos", camera.GetCameraPos());
-		pointLight.Loc = camera.GetCameraPos();
+
+		// 3D texture:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_3D, texmapID);
+		ourShader.setInt("TexMap3D", 0);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
 		glBindVertexArray(VAO);
 
@@ -291,10 +315,14 @@ void ReloadObjectModel()
 {
 	Vertices.clear(); // Refresh vertex buffer.
 	// Load the model from the file path & add colors:
-	if (LoadModel(Vertices)) {
+
+	LoadCube(Vertices);
+	LoadTextures();
+
+	/*if (LoadModel(Vertices)) {
 		SetColor();
 		//LoadTextures();
-	}
+	}*/
 }
 
 /* Reinitializes buffer for drawing, handling OpenGL configuration. */
@@ -327,6 +355,8 @@ void InitModel() {
 	// BiTangent attribute:
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
+
+	LoadTextures();
 
 	glBindVertexArray(0); // Unbind VAO
 }
@@ -402,6 +432,18 @@ void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string la
 	textBox->setFixedSize(Vector2i(100, 25));
 	textBox->setFontSize(20);
 	textBox->setAlignment(TextBox::Alignment::Center);
+}
+
+bool LoadCube(std::vector<Vertex> &vertices) {
+	GLuint i = 0;
+
+	while (i < 36) {
+		Vertex vertex;
+		vertex.Position = glm::vec3(cube_vertices[i], cube_vertices[i+1], cube_vertices[i+2]);
+		i += 3;
+		Vertices.push_back(vertex);
+	}
+	return true;
 }
 
 /*
@@ -743,6 +785,27 @@ void ResetGui()
 	gui_RenderType->setValue(renderType);
 }
 
+void LoadTextures() {
+	std::string texture_path = "Bucky_32_32_32.raw";
+	glm::vec3 dimension = glm::vec3(32,32,32);
+
+	GLubyte* pData = load_3d_raw_data(texture_path, dimension);
+
+	if (!pData) return;
+
+	glGenTextures(1, &texmapID);
+	glBindTexture(GL_TEXTURE_3D, texmapID);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, dimension.x, dimension.y, dimension.z, 0, GL_RGB,GL_UNSIGNED_BYTE, pData);
+}
+
 GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
 	size_t size = dimension[0] * dimension[1] * dimension[2];
 
@@ -750,14 +813,16 @@ GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
 	GLubyte *data = new GLubyte[size];			  // 8bit
 	if (!(fp = fopen(texture_path.c_str(), "rb"))) {
 		std::cout << "Error: opening .raw file failed" << std::endl;
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
+		return nullptr;
 	}
 	else {
 		std::cout << "OK: open .raw file successed" << std::endl;
 	}
 	if (fread(data, sizeof(char), size, fp) != size) {
 		std::cout << "Error: read .raw file failed" << std::endl;
-		exit(1);
+		//exit(1);
+		return nullptr;
 	}
 	else {
 		std::cout << "OK: read .raw file successed" << std::endl;

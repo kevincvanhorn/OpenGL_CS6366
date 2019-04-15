@@ -3,12 +3,12 @@
 // Vertex Inputs
 layout(location = 0) in vec3 vPosition_modelspace;
 layout (location = 1) in vec3 normal;
-layout (location = 2) in vec2 texCoordIn;
+layout (location = 2) in vec3 texCoordIn;
 layout (location = 3) in vec3 tangentIn;
 layout (location = 4) in vec3 biTangentIn;
 
 out vec3 pixelPos;
-out vec2 texCoord;
+out vec3 texCoord;
 flat out vec3 pixelNormalF;
 
 
@@ -24,5 +24,6 @@ void main(){
 	// Set vertex position:
     gl_Position = MVP * vec4(vPosition_modelspace, 1);
 
-    texCoord = texCoordIn;
+
+    //tex_coord = (vec4(texCoordIn, 0.0, 1.0) * MVP).stp;
 }
