@@ -261,9 +261,10 @@ int main()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Volume Rendering
-		glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1, &texmapID);
-		glBindTexture(GL_TEXTURE_3D, texmapID);
+		//glGenTextures(1, &texmapID);
+		//glBindTexture(GL_TEXTURE_3D, texmapID);
+
+		SliceVolume();
 		ourShader.setInt("texMap", 0);
 
 		glBindVertexArray(VAO);
@@ -339,8 +340,8 @@ void ReloadObjectModel()
 	// Load the model from the file path & add colors:
 
 	LoadCube(Vertices);
-	InitModel();
 	LoadTextures();
+	InitModel();
 
 	/*if (LoadModel(Vertices)) {
 		SetColor();
@@ -359,7 +360,7 @@ void InitModel() {
 	glBindVertexArray(VAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * Vertices.size(), &Vertices[0], GL_DYNAMIC_DRAW);
 
 	// Position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
@@ -677,17 +678,16 @@ void ResetGui()
 }
 
 void LoadTextures() {
-	std::string texture_path = "Bucky_32_32_32.raw";
-	glm::vec3 dimension = glm::vec3(32,32,32);
+	std::string texture_path = "BostonTeapot_256_256_178.raw";
+	glm::vec3 dimension = glm::vec3(256,256,178);
 
 	GLubyte* pData = load_3d_raw_data(texture_path, dimension);
 
 	if (!pData) return;
 
-	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &texmapID);
 	glBindTexture(GL_TEXTURE_3D, texmapID);
-
+	
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -695,8 +695,10 @@ void LoadTextures() {
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, dimension.x, dimension.y, dimension.z, 0, GL_RED,GL_UNSIGNED_BYTE, pData);
+
 }
 
+// @ref https://github.com/mmmovania/opengl33_dev_cookbook_2013/tree/master/Chapter7/3DTextureSlicing
 void SliceVolume() {
 	int num_slices = samplingRate;
 	Vertices.clear();

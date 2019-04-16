@@ -11,12 +11,12 @@ out vec4 color; // Color output from the frag shader.
 
 void main(){
 
-
 	vec4 a = texture(texMap, pixelPos);
+	//float alpha = a.r;
 
-	vec4 c4 = vec4(modelColor, 1.0f);
+	//color = vec4(modelColor, alpha);
 
-	color = vec4(modelColor, 1.0f);//c4*a;//vec4(modelColor, 1.0f);
-
-	//color = texture(texMap, pixelPos).rrrr;
+	//vec4 c4 = vec4(modelColor, 1.0f);
+	//color = c4*alpha;//vec4(modelColor, 1.0f);
+	color = texture(texMap, vec3(1,1,1) - pixelPos).rrrr;
 }

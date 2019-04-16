@@ -16,7 +16,7 @@ public:
 	// Default values:
 	float const NEAR_PLANE = 0.1f;
 	float const FAR_PLANE = 100.0f;
-	float const PERSP = 45.0f;
+	float const PERSP = 45;
 	float POS_X = 0;
 	float POS_Y = 0;
 	float POS_Z = 10;
@@ -54,7 +54,7 @@ public:
 		localUp = glm::vec3(0,1,0);
 
 		RotX = 0;
-		RotY = 0;
+		RotY = -90;
 		RotZ = 0;
 	}
 
@@ -108,7 +108,7 @@ public:
 		pointVector.x = cos(glm::radians(RotX)) * cos(glm::radians(RotY));
 		pointVector.y = sin(glm::radians(RotX));
 		pointVector.z = cos(glm::radians(RotX)) * sin(glm::radians(RotY));
-		glm::vec3 vCamPos = objectLoc + pointVector*4.0f;
+		glm::vec3 vCamPos = objectLoc + pointVector*2.0f;
 		
 		View = glm::lookAt(vCamPos, objectLoc, glm::vec3(0,1,0)); // This should act as the new origin
 
@@ -149,7 +149,7 @@ public:
 		localUp = glm::vec3(0, 1, 0);
 
 		RotX = 0;
-		RotY = 0;
+		RotY = -90;
 		RotZ = 0;
 	}
 };
