@@ -30,6 +30,10 @@ public:
 	glm::vec3 axisX, axisY, axisZ, localUp; // Left/Right, Up/Down, Forward/Backward respectively
 	float RotX, RotY, RotZ;
 
+	glm::vec3 pointVector = glm::vec3(0, 0, -1);
+	glm::mat4 MV;
+
+
 	// Constructor from vector values:
 	Camera(float width, float height)
 	{
@@ -62,12 +66,17 @@ public:
 		return glm::vec3(localPos.x, localPos.y, localPos.z);
 	}
 
+	glm::vec3 GetCameraDir() {
+		return glm::normalize(pointVector);
+		//return glm::normalize(glm::vec3(MV[1][3], MV[2][3], MV[3][3]));
+	}
+
 	glm::mat4 GetMVPMatrix()
 	{
 		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		glm::mat4 Projection = glm::perspective(glm::radians(perspective), screenWidth / screenHeight, nearPlane, farPlane);
 
-		glm::vec3 pointVector = glm::vec3(0,0,-1);
+		pointVector = glm::vec3(0,0,-1);
 		glm::vec3 defaultUp = glm::vec3(0,1,0);
 
 		// Rotate Up:
@@ -95,11 +104,20 @@ public:
 		// Set Camera View (where initalLoc is the camera origin)
 		glm::mat4 View = glm::lookAt(localPos, pointVector + localPos, axisY); // This should act as the new origin
 
+		glm::vec3 objectLoc(0.5f,0.5f,0.5f);
+		pointVector.x = cos(glm::radians(RotX)) * cos(glm::radians(RotY));
+		pointVector.y = sin(glm::radians(RotX));
+		pointVector.z = cos(glm::radians(RotX)) * sin(glm::radians(RotY));
+		glm::vec3 vCamPos = objectLoc + pointVector*4.0f;
+		
+		View = glm::lookAt(vCamPos, objectLoc, glm::vec3(0,1,0)); // This should act as the new origin
+
 		// Model matrix : Model is at origin
 		glm::mat4 Model = glm::mat4(1.0f);
 
 		// ModelViewProjection
 		glm::mat4 mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+		MV = View;
 
 		return mvp;
 	}

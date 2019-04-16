@@ -51,7 +51,6 @@ MessageCallback(GLenum source,
 		type, severity, message);
 }
 
-
 // Active local camera rotation type.
 enum ERotType {
 	Right_Pos,
@@ -80,12 +79,12 @@ enum EModelName {
 // Holds data read from the obj file.
 struct Vertex {
 	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
-	glm::vec3 Tangent;
-	glm::vec3 BiTangent;
+	//glm::vec3 Normal;
+	//glm::vec2 TexCoords;
+	//glm::vec3 Tangent;
+	//glm::vec3 BiTangent;
 
-	glm::vec3 Color;
+	//glm::vec3 Color;
 };
 
 // Window dimensions
@@ -121,7 +120,7 @@ std::string strObjectFile2;
 EModelName modelName = EModelName::TEAPOT;
 std::string strImageBar = "./objs/colorbar.png";
 bool bTransferFunctionSign = true;
-int samplingRate = 2000;
+int samplingRate = 100;
 float viewSlider = 1.0f;
 float slider0 = 0.161290f;
 float slider1 = 0.564516f;
@@ -136,6 +135,7 @@ VectorXf gVector(8);
 Graph *graph;
 unsigned int texmapID;
 Color emmisiveColor(1.0f, 1.0f, 1.0f, 1.0f);
+const int MAX_SLICES = 512;
 
 std::string strObjectFile;
 
@@ -145,6 +145,27 @@ GLfloat cube_vertices[24] = {
 GLuint cube_indices[36] = {
 	1,5,7,  7,3,1,  0,2,6,  6,4,0,  0,1,3,   3,2,0,  7,5,4,  4,6,7,  2,3,7,  7,6,2,  1,0,4,  4,5,1 };
 GLuint cube_edges[24]{ 1,5,  5,7,  7,3,  3,1,  0,4,  4,6,  6,2,  2,0,  0,1,  2,3,  4,5,  6,7 };
+
+glm::vec3 vertexList[8] = { glm::vec3(0.0f,0.0f,0.0f),
+						   glm::vec3(1.0f,0.0f,0.0f),
+						   glm::vec3(1.0f, 1.0f,0.0f),
+						   glm::vec3(0.0f, 1.0f,0.0f),
+						   glm::vec3(0.0f,0.0f, 1.0f),
+						   glm::vec3(1.0f,0.0f, 1.0f),
+						   glm::vec3(1.0f, 1.0f, 1.0f),
+						   glm::vec3(0.0f, 1.0f, 1.0f) };
+//unit cube edges
+int edgeList[8][12] = {
+	{ 0,1,5,6,   4,8,11,9,  3,7,2,10 }, // v0 is front
+	{ 0,4,3,11,  1,2,6,7,   5,9,8,10 }, // v1 is front
+	{ 1,5,0,8,   2,3,7,4,   6,10,9,11}, // v2 is front
+	{ 7,11,10,8, 2,6,1,9,   3,0,4,5  }, // v3 is front
+	{ 8,5,9,1,   11,10,7,6, 4,3,0,2  }, // v4 is front
+	{ 9,6,10,2,  8,11,4,7,  5,0,1,3  }, // v5 is front
+	{ 9,8,5,4,   6,1,2,0,   10,7,11,3}, // v6 is front
+	{ 10,9,6,5,  7,2,3,1,   11,4,8,0 }  // v7 is front
+};
+const int edges[12][2] = { {0,1},{1,2},{2,3},{3,0},{0,4},{1,5},{2,6},{3,7},{4,5},{5,6},{6,7},{7,4} };
 
 // Second Window:
 
@@ -170,6 +191,7 @@ void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string la
 void SetGraphValues();
 void LoadTextures();
 bool LoadCube(std::vector<Vertex> &vertices);
+void SliceVolume();
 
 GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension);
 
@@ -229,28 +251,26 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glEnable(GL_TEXTURE_3D);
-
 		// Draw the Obj:
 		ourShader.use();
 		ourShader.setVec3("modelColor", colObject[0], colObject[1], colObject[2]); // Set the color of the object
 		ourShader.setVec3("emmisiveColor", emmisiveColor[0], emmisiveColor[1], emmisiveColor[2]); // TODO: Calculate emmisive color.
-		ourShader.setVec3("camPos", camera.GetCameraPos());
-
-		// 3D texture:
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_3D, texmapID);
-		ourShader.setInt("TexMap3D", 0);
+		//ourShader.setVec3("camPos", camera.GetCameraPos());
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		// Volume Rendering
+		glActiveTexture(GL_TEXTURE0);
+		glGenTextures(1, &texmapID);
+		glBindTexture(GL_TEXTURE_3D, texmapID);
+		ourShader.setInt("texMap", 0);
 
 		glBindVertexArray(VAO);
 
 		if (Vertices.size() > 0) {
 			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &camera.GetMVPMatrix()[0][0]);
-			
+
 			// Set draw type:
 			if (renderType == ERenderType::Triangle) { // TODO: Implement triangle draw type. Currently the previous iteration of solid.
 				glDrawArrays(GL_TRIANGLES, 0, Vertices.size());
@@ -266,6 +286,8 @@ int main()
 		}
 
 		glBindVertexArray(0);
+
+		SliceVolume();
 
 		// Set draw mode back to fill & draw gui
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -317,6 +339,7 @@ void ReloadObjectModel()
 	// Load the model from the file path & add colors:
 
 	LoadCube(Vertices);
+	InitModel();
 	LoadTextures();
 
 	/*if (LoadModel(Vertices)) {
@@ -327,6 +350,8 @@ void ReloadObjectModel()
 
 /* Reinitializes buffer for drawing, handling OpenGL configuration. */
 void InitModel() {
+	if (Vertices.size() <= 0) return;
+
 	std::cout << "Init Model. \n";
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -341,22 +366,20 @@ void InitModel() {
 	glEnableVertexAttribArray(0);
 
 	// Normal attribute
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+	//glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
 
 	// Texture Coords attribute:
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+	//glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
 	// Tangent attribute:
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+	//glEnableVertexAttribArray(3);
+	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
 
 	// BiTangent attribute:
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
-
-	LoadTextures();
+	//glEnableVertexAttribArray(4);
+	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
 
 	glBindVertexArray(0); // Unbind VAO
 }
@@ -364,12 +387,12 @@ void InitModel() {
 /* Set the color value for each vertex. */
 void SetColor()
 {
-	for (int i = 0; i < Vertices.size(); i++) {
+	/*for (int i = 0; i < Vertices.size(); i++) {
 		Vertices[i].Color = glm::vec3(colObject.r(), colObject.g(), colObject.b());
 	}
 	if (Vertices.size() > 0) {
 		InitModel();
-	}
+	}*/
 }
 
 /* Centers the object in the screen when loaded. */
@@ -439,147 +462,15 @@ bool LoadCube(std::vector<Vertex> &vertices) {
 
 	while (i < 36) {
 		Vertex vertex;
-		vertex.Position = glm::vec3(cube_vertices[i], cube_vertices[i+1], cube_vertices[i+2]);
-		i += 3;
+
+		vertex.Position = glm::vec3(
+			cube_vertices[3*cube_indices[i]], 
+			cube_vertices[3 * cube_indices[i] +1], 
+			cube_vertices[3 * cube_indices[i] + 2]);
+	
+		i += 1;
 		Vertices.push_back(vertex);
 	}
-	return true;
-}
-
-/*
- * Load the obj model from a file.
- * @ref Assignment Tips in assignment writeup.
- */
-bool LoadModel(std::vector<Vertex> &vertices) {
-	std::vector<glm::vec3> positions;
-	std::vector< glm::vec3> normals;
-	std::vector<glm::vec2> tex_coords;
-
-	std::ifstream file(strObjectFile.c_str(), std::ios::in);
-
-	float Min_Z = std::numeric_limits<float>::max();
-	float Max_Z = std::numeric_limits<float>::min();
-	
-	// Check for valid file
-	if (!file) {
-		printf("ERROR: Invalid file path.\n");
-		return false;
-	}
-	try {
-		std::string curLine;
-
-		// Read each line
-		while (getline(file, curLine)) {
-			std::stringstream ss(curLine);
-			std::string firstWord;
-			ss >> firstWord;
-
-			// Vertex:
-			if (firstWord == "v") {
-				glm::vec3 vert_pos;
-				ss >> vert_pos[0] >> vert_pos[1] >> vert_pos[2];
-
-				// Construct bounds of model:
-				if (vert_pos[1] < Min_Z) {
-					Min_Z = vert_pos[1];
-				}
-				if (vert_pos[1] > Max_Z) {
-					Max_Z = vert_pos[1];
-				}
-				
-				positions.push_back(vert_pos);
-			}
-			// Texture Coordinate
-			else if (firstWord == "vt") {
-				glm::vec2 tex_coord;
-				ss >> tex_coord[0] >> tex_coord[1];
-				tex_coords.push_back(tex_coord);
-			}
-			// Vertex Normal:
-			else if (firstWord == "vn") {
-				glm::vec3 vert_norm;
-				ss >> vert_norm[0] >> vert_norm[1] >> vert_norm[2];
-				normals.push_back(vert_norm);
-			}
-			// Face:
-			else if (firstWord == "f") {
-				std::string s_vertex_0, s_vertex_1, s_vertex_2;
-				ss >> s_vertex_0 >> s_vertex_1 >> s_vertex_2;
-				int pos_idx, tex_idx, norm_idx;
-				std::sscanf(s_vertex_0.c_str(), "%d/%d/%d", &pos_idx, &tex_idx, &norm_idx);
-				// We have to use index - 1 because the obj index starts at 1
-				Vertex vertex_0;
-				vertex_0.Position = positions[pos_idx - 1];
-				vertex_0.TexCoords = tex_coords[tex_idx - 1];
-				vertex_0.TexCoords.y *= -1;
-				vertex_0.Normal = normals[norm_idx - 1];
-				sscanf(s_vertex_1.c_str(), "%d/%d/%d", &pos_idx, &tex_idx, &norm_idx);
-
-				Vertex vertex_1;
-				vertex_1.Position = positions[pos_idx - 1];
-				vertex_1.TexCoords = tex_coords[tex_idx - 1];
-				vertex_1.TexCoords.y *= -1;
-				vertex_1.Normal = normals[norm_idx - 1];
-				sscanf(s_vertex_2.c_str(), "%d/%d/%d", &pos_idx, &tex_idx, &norm_idx);
-
-				Vertex vertex_2;
-				vertex_2.Position = positions[pos_idx - 1];
-				vertex_2.TexCoords = tex_coords[tex_idx - 1];
-				vertex_2.TexCoords.y *= -1;
-				vertex_2.Normal = normals[norm_idx - 1];
-
-				// Compute Triangle tangent/bi-tangent:
-				glm::vec2 UV1 = vertex_1.TexCoords - vertex_0.TexCoords;
-				glm::vec2 UV2 = vertex_2.TexCoords - vertex_0.TexCoords;
-				glm::vec3 V1 = vertex_1.Position - vertex_0.Position;
-				glm::vec3 V2 = vertex_2.Position - vertex_0.Position;
-				float d = 1.0f / (UV1.x * UV2.y - UV1.y * UV2.x);
-				glm::vec3 tangent;// = (V1 * UV2.y - V2 * UV1.y)*d;
-				tangent.x = d * (UV2.y * V1.x - UV1.y * V2.x);
-				tangent.y = d * (UV2.y * V1.y - UV1.y * V2.y);
-				tangent.z = d * (UV2.y * V1.z - UV1.y * V2.z);
-				tangent = glm::normalize(tangent);
-				
-				glm::vec3 bitangent;// = (V2 * UV1.x - V1 * UV2.x)*d;
-				bitangent.x = d * (-UV2.x * V1.x + UV1.x * V2.x);
-				bitangent.y = d * (-UV2.x * V1.y + UV1.x * V2.y);
-				bitangent.z = d * (-UV2.x * V1.z + UV1.x * V2.z);
-				bitangent = glm::normalize(bitangent);
-
-				vertex_0.Tangent = tangent;
-				vertex_1.Tangent = tangent;
-				vertex_2.Tangent = tangent;
-				vertex_0.BiTangent = bitangent;
-				vertex_1.BiTangent = bitangent;
-				vertex_2.BiTangent = bitangent;
-
-				vertices.push_back(vertex_0);
-				vertices.push_back(vertex_1);
-				vertices.push_back(vertex_2);
-			}
-		}
-	}
-	catch (const std::exception&) {
-		std::cout << "ERROR: Obj file cannot be read.\n";
-		return false;
-	}
-
-	camera.Reset();
-
-	if (strObjectFile == "DNE.obj") {
-		SetViewLoc(Min_Z, Max_Z); // Position object in center.
-		camera.RotX = 30;
-		camera.localPos.z = 2.3;
-		dPositionZ = 2.3f;
-		gui_PositionZ->setValue(dPositionZ);
-		camera.localPos.y = 1.3;
-		dPositionY = 1.3f;
-		gui_PositionY->setValue(dPositionY);
-	}
-	else {
-		SetViewLoc(Min_Z, Max_Z); // Position object in center.
-	}
-
 	return true;
 }
 
@@ -793,6 +684,7 @@ void LoadTextures() {
 
 	if (!pData) return;
 
+	glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &texmapID);
 	glBindTexture(GL_TEXTURE_3D, texmapID);
 
@@ -802,8 +694,216 @@ void LoadTextures() {
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, dimension.x, dimension.y, dimension.z, 0, GL_RED,GL_UNSIGNED_BYTE, pData);
+}
 
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB8, dimension.x, dimension.y, dimension.z, 0, GL_RGB,GL_UNSIGNED_BYTE, pData);
+void SliceVolume() {
+	int num_slices = samplingRate;
+	Vertices.clear();
+
+	glm::vec3 viewDir = camera.GetCameraDir();
+
+	//get the max and min distance of each vertex of the unit cube
+	//in the viewing direction
+	//float max_dist = glm::dot(viewDir, glm::vec3(cube_vertices[0], cube_vertices[1], cube_vertices[2]));
+	float max_dist = glm::dot(viewDir, vertexList[0]);
+	float min_dist = max_dist;
+	int max_index = 0;
+	int count = 0;
+
+	for (int i = 1; i < 8; i++) {
+		//get the distance between the current unit cube vertex and 
+		//the view vector by dot product
+		//float dist = glm::dot(viewDir, glm::vec3(cube_vertices[i], cube_vertices[i+1], cube_vertices[i+2]));
+		float dist = glm::dot(viewDir, vertexList[i]);
+
+		//if distance is > max_dist, store the value and index
+		if (dist > max_dist) {
+			max_dist = dist;
+			max_index = i;
+		}
+
+		//if distance is < min_dist, store the value 
+		if (dist < min_dist)
+			min_dist = dist;
+	}
+
+	//find tha abs maximum of the view direction vector
+	int max_dim = 0;
+	glm::vec3 v = glm::abs(v);
+	float val = v.x;
+	if (v.y > val) {
+		val = v.y;
+		max_dim = 1;
+	}
+	if (v.z > val) {
+		val = v.z;
+		max_dim = 2;
+	}
+
+	//expand it a little bit
+	min_dist -= 0.0001f;
+	max_dist += 0.0001f;
+
+	//local variables to store the start, direction vectors, 
+	//lambda intersection values
+	glm::vec3 vecStart[12];
+	glm::vec3 vecDir[12];
+	float lambda[12];
+	float lambda_inc[12];
+	float denom = 0;
+
+	//set the minimum distance as the plane_dist
+	//subtract the max and min distances and divide by the 
+	//total number of slices to get the plane increment
+	float plane_dist = min_dist;
+	float plane_dist_inc = (max_dist - min_dist) / float(num_slices);
+
+	//for all edges
+	for (int i = 0; i < 12; i++) {
+		//get the start position vertex by table lookup
+		// vecStart[i] = vertexList[edges[edgeList[max_index][i]][0]];
+
+		/*
+		vecStart[i] = glm::vec3(
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0]],
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0] + 1],
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0] + 2]);
+
+		//get the direction by table lookup
+		glm::vec3 e2 = glm::vec3(
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1]],
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1] + 1],
+			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1] + 2]);
+
+		vecDir[i] = e2 - vecStart[i];
+		*/
+
+		vecStart[i] = vertexList[edges[edgeList[max_index][i]][0]];
+
+		//get the direction by table lookup
+		vecDir[i] = vertexList[edges[edgeList[max_index][i]][1]] - vecStart[i];
+
+
+
+		//do a dot of vecDir with the view direction vector
+		denom = glm::dot(vecDir[i], viewDir);
+
+		//determine the plane intersection parameter (lambda) and 
+		//plane intersection parameter increment (lambda_inc)
+		if (1.0 + denom != 1.0) {
+			lambda_inc[i] = plane_dist_inc / denom;
+			lambda[i] = (plane_dist - glm::dot(vecStart[i], viewDir)) / denom;
+		}
+		else {
+			lambda[i] = -1.0;
+			lambda_inc[i] = 0.0;
+		}
+	}
+
+	// local variables to store the intesected points
+		//note that for a plane and sub intersection, we can have 
+		//a minimum of 3 and a maximum of 6 vertex polygon
+	glm::vec3 intersection[6];
+	float dL[12];
+
+	//loop through all slices
+	for (int i = num_slices - 1; i >= 0; i--) {
+
+		//determine the lambda value for all edges
+		for (int e = 0; e < 12; e++)
+		{
+			dL[e] = lambda[e] + i * lambda_inc[e];
+		}
+
+		//if the values are between 0-1, we have an intersection at the current edge
+		//repeat the same for all 12 edges
+		if ((dL[0] >= 0.0) && (dL[0] < 1.0)) {
+			intersection[0] = vecStart[0] + dL[0] * vecDir[0];
+		}
+		else if ((dL[1] >= 0.0) && (dL[1] < 1.0)) {
+			intersection[0] = vecStart[1] + dL[1] * vecDir[1];
+		}
+		else if ((dL[3] >= 0.0) && (dL[3] < 1.0)) {
+			intersection[0] = vecStart[3] + dL[3] * vecDir[3];
+		}
+		else continue;
+
+		if ((dL[2] >= 0.0) && (dL[2] < 1.0)) {
+			intersection[1] = vecStart[2] + dL[2] * vecDir[2];
+		}
+		else if ((dL[0] >= 0.0) && (dL[0] < 1.0)) {
+			intersection[1] = vecStart[0] + dL[0] * vecDir[0];
+		}
+		else if ((dL[1] >= 0.0) && (dL[1] < 1.0)) {
+			intersection[1] = vecStart[1] + dL[1] * vecDir[1];
+		}
+		else {
+			intersection[1] = vecStart[3] + dL[3] * vecDir[3];
+		}
+
+		if ((dL[4] >= 0.0) && (dL[4] < 1.0)) {
+			intersection[2] = vecStart[4] + dL[4] * vecDir[4];
+		}
+		else if ((dL[5] >= 0.0) && (dL[5] < 1.0)) {
+			intersection[2] = vecStart[5] + dL[5] * vecDir[5];
+		}
+		else {
+			intersection[2] = vecStart[7] + dL[7] * vecDir[7];
+		}
+		if ((dL[6] >= 0.0) && (dL[6] < 1.0)) {
+			intersection[3] = vecStart[6] + dL[6] * vecDir[6];
+		}
+		else if ((dL[4] >= 0.0) && (dL[4] < 1.0)) {
+			intersection[3] = vecStart[4] + dL[4] * vecDir[4];
+		}
+		else if ((dL[5] >= 0.0) && (dL[5] < 1.0)) {
+			intersection[3] = vecStart[5] + dL[5] * vecDir[5];
+		}
+		else {
+			intersection[3] = vecStart[7] + dL[7] * vecDir[7];
+		}
+		if ((dL[8] >= 0.0) && (dL[8] < 1.0)) {
+			intersection[4] = vecStart[8] + dL[8] * vecDir[8];
+		}
+		else if ((dL[9] >= 0.0) && (dL[9] < 1.0)) {
+			intersection[4] = vecStart[9] + dL[9] * vecDir[9];
+		}
+		else {
+			intersection[4] = vecStart[11] + dL[11] * vecDir[11];
+		}
+
+		if ((dL[10] >= 0.0) && (dL[10] < 1.0)) {
+			intersection[5] = vecStart[10] + dL[10] * vecDir[10];
+		}
+		else if ((dL[8] >= 0.0) && (dL[8] < 1.0)) {
+			intersection[5] = vecStart[8] + dL[8] * vecDir[8];
+		}
+		else if ((dL[9] >= 0.0) && (dL[9] < 1.0)) {
+			intersection[5] = vecStart[9] + dL[9] * vecDir[9];
+		}
+		else {
+			intersection[5] = vecStart[11] + dL[11] * vecDir[11];
+		}
+
+		//after all 6 possible intersection vertices are obtained,
+		//we calculated the proper polygon indices by using indices of a triangular fan
+		int indices[] = { 0,1,2, 0,2,3, 0,3,4, 0,4,5 };
+
+		//Using the indices, pass the intersection vertices to the vTextureSlices vector
+		for (int i = 0; i < 12; i++) {
+			Vertex vertex;
+			vertex.Position = intersection[indices[i]];
+			Vertices.push_back(vertex);
+		}		
+	}
+
+	int numVertsToRemove = (float)(1 - viewSlider) *  (Vertices.size());
+	numVertsToRemove -= numVertsToRemove % 3;
+
+	Vertices.erase(Vertices.begin(), Vertices.begin()+numVertsToRemove);
+
+	InitModel();
 }
 
 GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {

@@ -1,20 +1,22 @@
 #version 330 core
-in vec3 pixelPos;
-in vec3 texCoord;
 
-uniform vec3 camPos;
+smooth in vec3 pixelPos;
 
+uniform sampler3D texMap;
+uniform vec3 emissiveColor;
 uniform vec3 modelColor;
-uniform vec3 emmisiveColor;
 
-// Texture sampler:
-uniform sampler3D TexMap3D;
 
 out vec4 color; // Color output from the frag shader.
 
 void main(){
-	//float a = texture(TexMap3D, texCoord); // opacity
 
-	//color = vec4(emmisiveColor, a);
-	color = vec4(modelColor, 1.0f);
+
+	vec4 a = texture(texMap, pixelPos);
+
+	vec4 c4 = vec4(modelColor, 1.0f);
+
+	color = vec4(modelColor, 1.0f);//c4*a;//vec4(modelColor, 1.0f);
+
+	//color = texture(texMap, pixelPos).rrrr;
 }
