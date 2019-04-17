@@ -118,7 +118,7 @@ ERenderType renderType = ERenderType::Triangle;
 
 std::string strObjectFile2;
 EModelName modelName = EModelName::TEAPOT;
-std::string strImageBar = "./objs/colorbar.png";
+std::string strImageBar = "colorbar.png";
 bool bTransferFunctionSign = true;
 int samplingRate = 100;
 float viewSlider = 1.0f;
@@ -134,6 +134,7 @@ float slider7 = 0.887097f;
 VectorXf gVector(8);
 Graph *graph;
 unsigned int texmapID;
+unsigned int colorMapID;
 Color emmisiveColor(1.0f, 1.0f, 1.0f, 1.0f);
 const int MAX_SLICES = 512;
 
@@ -192,6 +193,8 @@ void SetGraphValues();
 void LoadTextures();
 bool LoadCube(std::vector<Vertex> &vertices);
 void SliceVolume();
+void LoadImage(std::string img_path, int width, int height, unsigned int ID);
+void LoadColorMap();
 
 GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension);
 
@@ -264,8 +267,18 @@ int main()
 		//glGenTextures(1, &texmapID);
 		//glBindTexture(GL_TEXTURE_3D, texmapID);
 
+		ourShader.setFloat("s0",slider0);
+		ourShader.setFloat("s1",slider1);
+		ourShader.setFloat("s2",slider2);
+		ourShader.setFloat("s3",slider3);
+		ourShader.setFloat("s4",slider4);
+		ourShader.setFloat("s5",slider5);
+		ourShader.setFloat("s6",slider6);
+		ourShader.setFloat("s7",slider7);
+
 		SliceVolume();
 		ourShader.setInt("texMap", 0);
+		ourShader.setInt("texColorMap", 1);
 
 		glBindVertexArray(VAO);
 
@@ -685,8 +698,15 @@ void LoadTextures() {
 
 	if (!pData) return;
 
+	//glActiveTexture(GL_TEXTURE0);
 	glGenTextures(1, &texmapID);
 	glBindTexture(GL_TEXTURE_3D, texmapID);
+
+	LoadColorMap();
+
+	//glActiveTexture(GL_TEXTURE1);
+	glGenTextures(1, &colorMapID);
+	glBindTexture(GL_TEXTURE_2D, colorMapID);
 	
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -695,7 +715,6 @@ void LoadTextures() {
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, dimension.x, dimension.y, dimension.z, 0, GL_RED,GL_UNSIGNED_BYTE, pData);
-
 }
 
 // @ref https://github.com/mmmovania/opengl33_dev_cookbook_2013/tree/master/Chapter7/3DTextureSlicing
@@ -785,8 +804,6 @@ void SliceVolume() {
 
 		//get the direction by table lookup
 		vecDir[i] = vertexList[edges[edgeList[max_index][i]][1]] - vecStart[i];
-
-
 
 		//do a dot of vecDir with the view direction vector
 		denom = glm::dot(vecDir[i], viewDir);
@@ -931,4 +948,39 @@ GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
 	}
 	fclose(fp);
 	return data;
+}
+
+
+void LoadColorMap()
+{
+	std::string path = strObjectFile;
+	int imgX = 256, imgY = 1;
+
+	if (true) {
+		std::cout << strImageBar << "\n";
+		LoadImage(strImageBar, imgX, imgY, colorMapID);
+	}
+}
+
+void LoadImage(std::string img_path, int width, int height, unsigned int ID)
+{
+	unsigned char* image = SOIL_load_image(img_path.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+	if (image) {
+		glBindTexture(GL_TEXTURE_2D, ID);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		SOIL_free_image_data(image);
+		glBindTexture(GL_TEXTURE_2D, 0); // Unbind
+	}
+	else {
+		printf("ERROR: Texture not found. %s", img_path);
+	}
+
 }
