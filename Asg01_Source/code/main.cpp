@@ -138,6 +138,10 @@ unsigned int colorMapID;
 Color emmisiveColor(1.0f, 1.0f, 1.0f, 1.0f);
 const int MAX_SLICES = 512;
 
+// resolution of the color bar
+float imageX = 256;
+float imageY = 10;
+
 std::string strObjectFile;
 
 GLfloat cube_vertices[24] = {
@@ -260,6 +264,8 @@ int main()
 		ourShader.setVec3("emmisiveColor", emmisiveColor[0], emmisiveColor[1], emmisiveColor[2]); // TODO: Calculate emmisive color.
 		//ourShader.setVec3("camPos", camera.GetCameraPos());
 
+		ourShader.setVec2("resolution", imageX, imageY);
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -275,6 +281,8 @@ int main()
 		ourShader.setFloat("s5",slider5);
 		ourShader.setFloat("s6",slider6);
 		ourShader.setFloat("s7",slider7);
+
+		ourShader.setFloat("sREL",15/samplingRate);
 
 		SliceVolume();
 		ourShader.setInt("texMap", 0);

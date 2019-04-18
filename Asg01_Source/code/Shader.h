@@ -94,6 +94,12 @@ public:
 		GLint location = glGetUniformLocation(program, name.c_str());
 		glUniform3f(location, x, y, z);
 	}
+
+	void setVec2(const std::string &name, float x, float y) const {
+		GLint location = glGetUniformLocation(program, name.c_str());
+		glUniform2f(location, x, y);
+	}
+
 	void setBool(const std::string &name, bool value) const
 	{
 		GLint location = glGetUniformLocation(program, name.c_str());
