@@ -147,6 +147,8 @@ std::string strObjectFile;
 bool bHasRotated = true;
 float prevSamplingRate = 0;
 float prevView = 0;
+bool bLoadedColorMap = false;
+bool bRequestSlice = false;
 
 GLfloat cube_vertices[24] = {
 0.0, 0.0, 0.0,  0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 1.0, 1.0,
@@ -287,11 +289,12 @@ int main()
 		
 		ourShader.setFloat("sREL",15.0f/((float)samplingRate));
 		
-		if (bHasRotated || samplingRate != prevSamplingRate || viewSlider != prevView) {
+		if (bHasRotated || samplingRate != prevSamplingRate || viewSlider != prevView || bRequestSlice) {
 			SliceVolume();
 			std::cout << "1";
 			prevSamplingRate = samplingRate;
 			prevView = viewSlider;
+			bRequestSlice = false;
 		}
 
 		ourShader.setInt("texMap", 0);
@@ -374,6 +377,7 @@ void ReloadObjectModel()
 	LoadCube(Vertices);
 	LoadTextures();
 	InitModel();
+	bRequestSlice = true;
 
 	/*if (LoadModel(Vertices)) {
 		SetColor();
@@ -452,18 +456,7 @@ void SetViewLoc(float min, float max)
 // Update the file for a given model name;
 void UpdateModelName()
 {
-	if (modelName == EModelName::BONSAI) {
-		strObjectFile;
-	}
-	else if (modelName == EModelName::BUCKY) {
-		strObjectFile;
-	}
-	else if (modelName == EModelName::HEAD) {
-		strObjectFile;
-	}
-	if (modelName == EModelName::TEAPOT) {
-		strObjectFile;
-	}
+	ReloadObjectModel();
 }
 
 void OnSetSamplingRate()
@@ -555,7 +548,6 @@ void SetupGUI(GLFWwindow* window)
 
 	gui_ModelName = gui->addVariable("Model Name", modelName, enabled);
 	gui_ModelName->setItems({ "HEAD", "TEAPOT", "BUCKY", "BONSAI" });
-	UpdateModelName();
 
 	gui_RenderType = gui->addVariable("Render Type", renderType, enabled);
 	gui_RenderType->setItems({ "Line", "Point", "Triangle" });
@@ -691,8 +683,8 @@ void SetDefaults() {
 	dFarPlane = camera.FAR_PLANE;
 	renderType = ERenderType::Triangle;
 	strObjectFile = "";
-	strImageBar = "";
-	modelName = EModelName::TEAPOT;
+	//strImageBar = "";
+	//modelName = EModelName::TEAPOT;
 	UpdateModelName();
 
 	camera.Reset();
@@ -702,19 +694,39 @@ void SetDefaults() {
 void ResetGui()
 {
 	SetDefaults();
+	
+	
 
-	gui_ImageBar->setValue(strImageBar);
+	//gui_ImageBar->setValue(strImageBar);
 	gui_RotValue->setValue(dRotValue);
 	gui_PositionX->setValue(dPositionX);
 	gui_PositionY->setValue(dPositionY);
 	gui_PositionZ->setValue(dPositionZ);
 	gui_ColObject->setValue(colObject);
 	gui_RenderType->setValue(renderType);
+	bRequestSlice = true;
 }
 
 void LoadTextures() {
 	std::string texture_path = "BostonTeapot_256_256_178.raw";
-	glm::vec3 dimension = glm::vec3(256,256,178);
+	glm::vec3 dimension = glm::vec3(256, 256, 178);
+
+	if (modelName == EModelName::BONSAI) {
+		texture_path = "Bonsai_512_512_154.raw";
+		dimension = glm::vec3(512, 512, 154);
+	}
+	else if (modelName == EModelName::BUCKY) {
+		texture_path = "Bucky_32_32_32.raw";
+		dimension = glm::vec3(32, 32, 32);
+	}
+	else if (modelName == EModelName::HEAD){
+		texture_path = "Head_256_256_225.raw";
+		dimension = glm::vec3(256, 256, 225);
+		camera.RotX = 0;
+		camera.RotY = -90;
+	}
+
+	bRequestSlice = true;
 
 	GLubyte* pData = load_3d_raw_data(texture_path, dimension);
 
@@ -724,7 +736,10 @@ void LoadTextures() {
 	glGenTextures(1, &texmapID);
 	glBindTexture(GL_TEXTURE_3D, texmapID);
 
-	LoadColorMap();
+	if (!bLoadedColorMap) {
+		LoadColorMap();
+		bLoadedColorMap = true;
+	}
 
 	//glActiveTexture(GL_TEXTURE1);
 	glGenTextures(1, &colorMapID);
