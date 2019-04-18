@@ -20,58 +20,54 @@ uniform vec2 resolution;
 
 uniform float sREL;
 
+uniform bool bUseTransfer;
+
 out vec4 color; // Color output from the frag shader.
 
 void main(){
-	float sRate0 = 15;
 	float i = texture(texMap, vec3(1,1,1) - pixelPos).r;
+	
+	float i2 = i;
+	if(i <= .01f) i2 = .01f;
+	else if(i>=.9f) i2 = 0.9f;
 
-	//vec4 c = texture(texColorMap, vec2(i/resolution.x,i/resolution.y));
+	vec4 c = texture(texColorMap, vec2(i2,0));
 
-	//if(i == 255) {color = vec4(1,1,1,1);}
-	//else{color = vec4(0);}
+	//color = texture(texColorMap, vec2(0.2f,0));
+	
+
+	if(!bUseTransfer){
+		color = vec4(modelColor, 1.0f);
+		return;
+	}
+
 
 	float alpha = 1;
-
-	//color = c*i;
-
-	vec4 c = texture(texColorMap, vec2(i,1));
-
-	if(i <= (1/7) && i >= 0){
-		i = (i-s0)*7;
-		alpha = s0 + i*(s1-s0); 
+	if(i <= (1.0f/7.0f) && i >= 0.0f){
+		alpha = s0 + (s1-s0)*7.0f*(i-(0.0f/7.0f));
 	}
-	else if(i > 1/7 && i <= 2/7){
-		i = (i-s1)*7;
-		alpha = s1 + (i)*(s2-s1);
+	else if(i > 1.0f/7.0f && i <= 2.0f/7.0f){
+		alpha = s1 + (s2-s1)*7.0f*(i-(1.0f/7.0f));
 	}
-	else if(i > 2/7 && i <= 3/7){
-		i = (i-s2)*7;
-		alpha = s2 + i*(s3-s2);
+	else if(i > 2.0f/7.0f && i <= 3.0f/7.0f){
+		alpha = s2 + (s3-s2)*7.0f*(i-(2.0f/7.0f));
 	}
-	else if(i > 3/7 && i <= 4/7){
-		i = (i-s3)*7;
-		alpha = s3 + i*(s4-s3);
+	else if(i > 3.0f/7.0f && i <= 4.0f/7.0f){
+		alpha = s3 + (s4-s3)*7.0f*(i-(3.0f/7.0f));
 	}
-	else if(i > 4/7 && i <= 5/7){
-		i = (i-s4)*7;
-		alpha = s4 + i*(s5-s4);
+	else if(i > 4.0f/7.0f && i <= 5.0f/7.0f){
+		alpha = s4 + (s5-s4)*7.0f*(i-(1.0f/7.0f));
 	}
-	else if(i > 5/7 && i <= 6/7){
-		i = (i-s5)*7;
-		alpha = s5 + i*(s6-s5);
+	else if(i > 5.0f/7.0f && i <= 6.0f/7.0f){
+		alpha = s5 + (s6-s5)*7.0f*(i-(1.0f/7.0f));
 	}
-	else if(i <= 1){
-		i = (i-s6)*7;
-		alpha = s6 + i*(s7-s6);
+	else if(i > 6.0f/7.0f && i <= 1.0f){
+		alpha = s6 + (s7-s6)*7.0f*(i-(1.0f/7.0f));
 	}
 	else{
-		alpha = 0;
+		alpha = 0.0f;
 	}
 
-	//alpha = 1 - pow((1 - alpha), (sREL));
-	color = vec4(c.x,c.y,c.z,alpha);
-
-	// JUST ORANGE:
-	//color = vec4(modelColor, 1.0f);
+	alpha = 1 - pow((1 - alpha), (sREL));
+	color = vec4(c.xyz,alpha);
 }

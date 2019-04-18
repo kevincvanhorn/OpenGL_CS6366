@@ -144,6 +144,10 @@ float imageY = 10;
 
 std::string strObjectFile;
 
+bool bHasRotated = true;
+float prevSamplingRate = 0;
+float prevView = 0;
+
 GLfloat cube_vertices[24] = {
 0.0, 0.0, 0.0,  0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 1.0, 1.0,
 1.0, 0.0, 0.0,  1.0, 0.0, 1.0,  1.0, 1.0, 0.0,  1.0, 1.0, 1.0 };
@@ -183,7 +187,6 @@ GLuint VBO, VAO;
 void RotateByVal(ERotType rotType);
 void ReloadObjectModel();
 void ResetGui();
-bool LoadModel(std::vector<Vertex> &vertices);
 void SetupGUI(GLFWwindow* window);
 void InitModel();
 void SetColor();
@@ -191,7 +194,7 @@ void SetViewLoc(float min, float max);
 
 void UpdateModelName();
 void OnSetSamplingRate(); // TODO: Implement SamplingRate function.
-void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar);
+Slider* AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar);
 
 void SetGraphValues();
 void LoadTextures();
@@ -281,12 +284,19 @@ int main()
 		ourShader.setFloat("s5",slider5);
 		ourShader.setFloat("s6",slider6);
 		ourShader.setFloat("s7",slider7);
+		
+		ourShader.setFloat("sREL",15.0f/((float)samplingRate));
+		
+		if (bHasRotated || samplingRate != prevSamplingRate || viewSlider != prevView) {
+			SliceVolume();
+			std::cout << "1";
+			prevSamplingRate = samplingRate;
+			prevView = viewSlider;
+		}
 
-		ourShader.setFloat("sREL",15/samplingRate);
-
-		SliceVolume();
 		ourShader.setInt("texMap", 0);
 		ourShader.setInt("texColorMap", 1);
+		ourShader.setInt("bUseTransfer", bTransferFunctionSign);
 
 		glBindVertexArray(VAO);
 
@@ -294,7 +304,7 @@ int main()
 			glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &camera.GetMVPMatrix()[0][0]);
 
 			// Set draw type:
-			if (renderType == ERenderType::Triangle) { // TODO: Implement triangle draw type. Currently the previous iteration of solid.
+			if (renderType == ERenderType::Triangle) {
 				glDrawArrays(GL_TRIANGLES, 0, Vertices.size());
 			}
 			else if (renderType == ERenderType::Point) {
@@ -307,9 +317,9 @@ int main()
 			}
 		}
 
-		glBindVertexArray(0);
+		bHasRotated = false;
 
-		SliceVolume();
+		glBindVertexArray(0);
 
 		// Set draw mode back to fill & draw gui
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -333,6 +343,7 @@ int main()
 */
 void RotateByVal(ERotType rotType)
 {
+	bHasRotated = true;
 	if (rotType == ERotType::Front_Neg) {
 		camera.RotZ += dRotValue;
 	}
@@ -459,7 +470,7 @@ void OnSetSamplingRate()
 {
 }
 
-void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar) {
+Slider* AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar) {
 	Widget* panel = new Widget(nanoguiWindow2);
 	panel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Middle, 0, 20));
 
@@ -472,11 +483,13 @@ void AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string la
 	TextBox *textBox = new TextBox(panel);
 	textBox->setFixedSize(Vector2i(60, 25));
 	textBox->setValue(value);
-	slider->setCallback([textBox](float value) { textBox->setValue(std::to_string(value)); });
+	slider->setCallback([textBox](float value) { textBox->setValue(std::to_string(value));});
 	slider->setFinalCallback([&](float value) { callbackVar = value; SetGraphValues(); });
 	textBox->setFixedSize(Vector2i(100, 25));
 	textBox->setFontSize(20);
 	textBox->setAlignment(TextBox::Alignment::Center);
+
+	return slider;
 }
 
 bool LoadCube(std::vector<Vertex> &vertices) {
@@ -600,6 +613,7 @@ void SetupGUI(GLFWwindow* window)
 	AddSlider(gui, nanoguiWindow2, "Slider 5", "0.677419", slider5);
 	AddSlider(gui, nanoguiWindow2, "Slider 6", "0.790323", slider6);
 	AddSlider(gui, nanoguiWindow2, "Slider 7", "0.887097", slider7);
+	
 	// END GRAPH
 
 	// Init screen:
