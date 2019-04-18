@@ -21,6 +21,7 @@ public:
 	float POS_Y = 0;
 	float POS_Z = 10;
 	float DIST = 10;
+	bool bRotateAroundObject = true;
 
 	// Local camera values
 	float perspective;
@@ -104,17 +105,18 @@ public:
 		// Set Camera View (where initalLoc is the camera origin)
 		glm::mat4 View = glm::lookAt(localPos, pointVector + localPos, axisY); // This should act as the new origin
 
-		glm::vec3 objectLoc(0.5f,0.5f,0.5f);
-		float X = glm::radians(RotX);
-		float Y = glm::radians(RotY);
+		// Rotate around object option:
+		if (bRotateAroundObject) {
+			glm::vec3 objectLoc(0.5f,0.5f,0.5f);
+			float X = glm::radians(RotX);
+			float Y = glm::radians(RotY);
+			pointVector.x = cos(X) * cos(Y);
+			pointVector.y = sin(X);
+			pointVector.z = cos(X) * sin(Y);
+			glm::vec3 vCamPos = objectLoc + pointVector * 2.0f;
+			View = glm::lookAt(vCamPos, objectLoc, glm::vec3(0.0f, 1.0f, 0.0f)); // This should act as the new origin
+		}
 
-		pointVector.x = cos(X) * cos(Y);
-		pointVector.y = sin(X);
-		pointVector.z = cos(X) * sin(Y);
-
-		glm::vec3 vCamPos = objectLoc + pointVector*2.0f;
-		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-		View = glm::lookAt(vCamPos, objectLoc, up); // This should act as the new origin
 
 		// Model matrix : Model is at origin
 		glm::mat4 Model = glm::mat4(1.0f);

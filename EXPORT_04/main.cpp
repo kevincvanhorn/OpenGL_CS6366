@@ -26,7 +26,6 @@
 #include "PointLight.h"
 #include "Camera.h"
 
-
 // Pre-define gui variable handles:
 #define GUI_DOUBLE nanogui::detail::FormWidget<double, std::integral_constant<bool, true>>
 #define GUI_STRING nanogui::detail::FormWidget<std::string, std::true_type>
@@ -79,12 +78,6 @@ enum EModelName {
 // Holds data read from the obj file.
 struct Vertex {
 	glm::vec3 Position;
-	//glm::vec3 Normal;
-	//glm::vec2 TexCoords;
-	//glm::vec3 Tangent;
-	//glm::vec3 BiTangent;
-
-	//glm::vec3 Color;
 };
 
 // Window dimensions
@@ -102,7 +95,6 @@ GUI_DOUBLE* gui_RotValue;
 GUI_DOUBLE* gui_PositionX;
 GUI_DOUBLE* gui_PositionY;
 GUI_DOUBLE* gui_PositionZ;
-
 GUI_BOOL* gui_bTransferFunctionSign;
 GUI_INT* gui_SamplingRate;
 
@@ -138,18 +130,20 @@ unsigned int colorMapID;
 Color emmisiveColor(1.0f, 1.0f, 1.0f, 1.0f);
 const int MAX_SLICES = 512;
 
-// resolution of the color bar
+// Resolution of the color bar:
 float imageX = 256;
 float imageY = 10;
 
 std::string strObjectFile;
 
+// Slice Volume vars:
 bool bHasRotated = true;
 float prevSamplingRate = 0;
 float prevView = 0;
 bool bLoadedColorMap = false;
 bool bRequestSlice = false;
 
+// Provided unit cube:
 GLfloat cube_vertices[24] = {
 0.0, 0.0, 0.0,  0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 1.0, 1.0,
 1.0, 0.0, 0.0,  1.0, 0.0, 1.0,  1.0, 1.0, 0.0,  1.0, 1.0, 1.0 };
@@ -157,6 +151,7 @@ GLuint cube_indices[36] = {
 	1,5,7,  7,3,1,  0,2,6,  6,4,0,  0,1,3,   3,2,0,  7,5,4,  4,6,7,  2,3,7,  7,6,2,  1,0,4,  4,5,1 };
 GLuint cube_edges[24]{ 1,5,  5,7,  7,3,  3,1,  0,4,  4,6,  6,2,  2,0,  0,1,  2,3,  4,5,  6,7 };
 
+// @Ref OpenGL Cookbook cube vertices:
 glm::vec3 vertexList[8] = { glm::vec3(0.0f,0.0f,0.0f),
 						   glm::vec3(1.0f,0.0f,0.0f),
 						   glm::vec3(1.0f, 1.0f,0.0f),
@@ -165,7 +160,6 @@ glm::vec3 vertexList[8] = { glm::vec3(0.0f,0.0f,0.0f),
 						   glm::vec3(1.0f,0.0f, 1.0f),
 						   glm::vec3(1.0f, 1.0f, 1.0f),
 						   glm::vec3(0.0f, 1.0f, 1.0f) };
-//unit cube edges
 int edgeList[8][12] = {
 	{ 0,1,5,6,   4,8,11,9,  3,7,2,10 }, // v0 is front
 	{ 0,4,3,11,  1,2,6,7,   5,9,8,10 }, // v1 is front
@@ -191,7 +185,6 @@ void ReloadObjectModel();
 void ResetGui();
 void SetupGUI(GLFWwindow* window);
 void InitModel();
-void SetColor();
 void SetViewLoc(float min, float max);
 
 void UpdateModelName();
@@ -372,17 +365,12 @@ void RotateByVal(ERotType rotType)
 void ReloadObjectModel()
 {
 	Vertices.clear(); // Refresh vertex buffer.
-	// Load the model from the file path & add colors:
 
+	// Load the model from the file path & add colors:
 	LoadCube(Vertices);
 	LoadTextures();
 	InitModel();
 	bRequestSlice = true;
-
-	/*if (LoadModel(Vertices)) {
-		SetColor();
-		//LoadTextures();
-	}*/
 }
 
 /* Reinitializes buffer for drawing, handling OpenGL configuration. */
@@ -402,34 +390,7 @@ void InitModel() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// Normal attribute
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-
-	// Texture Coords attribute:
-	//glEnableVertexAttribArray(2);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-
-	// Tangent attribute:
-	//glEnableVertexAttribArray(3);
-	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-
-	// BiTangent attribute:
-	//glEnableVertexAttribArray(4);
-	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, BiTangent));
-
 	glBindVertexArray(0); // Unbind VAO
-}
-
-/* Set the color value for each vertex. */
-void SetColor()
-{
-	/*for (int i = 0; i < Vertices.size(); i++) {
-		Vertices[i].Color = glm::vec3(colObject.r(), colObject.g(), colObject.b());
-	}
-	if (Vertices.size() > 0) {
-		InitModel();
-	}*/
 }
 
 /* Centers the object in the screen when loaded. */
@@ -459,9 +420,7 @@ void UpdateModelName()
 	ReloadObjectModel();
 }
 
-void OnSetSamplingRate()
-{
-}
+void OnSetSamplingRate(){}
 
 Slider* AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string label, const std::string value, float& callbackVar) {
 	Widget* panel = new Widget(nanoguiWindow2);
@@ -485,6 +444,7 @@ Slider* AddSlider(FormHelper *gui, ref<Window> nanoguiWindow2, const std::string
 	return slider;
 }
 
+// Loads the default(provided) unit cube
 bool LoadCube(std::vector<Vertex> &vertices) {
 	GLuint i = 0;
 
@@ -683,8 +643,6 @@ void SetDefaults() {
 	dFarPlane = camera.FAR_PLANE;
 	renderType = ERenderType::Triangle;
 	strObjectFile = "";
-	//strImageBar = "";
-	//modelName = EModelName::TEAPOT;
 	UpdateModelName();
 
 	camera.Reset();
@@ -694,8 +652,6 @@ void SetDefaults() {
 void ResetGui()
 {
 	SetDefaults();
-	
-	
 
 	//gui_ImageBar->setValue(strImageBar);
 	gui_RotValue->setValue(dRotValue);
@@ -761,18 +717,14 @@ void SliceVolume() {
 
 	glm::vec3 viewDir = camera.GetCameraDir();
 
-	//get the max and min distance of each vertex of the unit cube
-	//in the viewing direction
-	//float max_dist = glm::dot(viewDir, glm::vec3(cube_vertices[0], cube_vertices[1], cube_vertices[2]));
+	//Max/Min distance of each vertex of the unit cube in the viewing direction
 	float max_dist = glm::dot(viewDir, vertexList[0]);
 	float min_dist = max_dist;
 	int max_index = 0;
 	int count = 0;
 
 	for (int i = 1; i < 8; i++) {
-		//get the distance between the current unit cube vertex and 
-		//the view vector by dot product
-		//float dist = glm::dot(viewDir, glm::vec3(cube_vertices[i], cube_vertices[i+1], cube_vertices[i+2]));
+		//get the distance between the current unit cube vertex and the view vector by dot product
 		float dist = glm::dot(viewDir, vertexList[i]);
 
 		//if distance is > max_dist, store the value and index
@@ -786,7 +738,7 @@ void SliceVolume() {
 			min_dist = dist;
 	}
 
-	//find tha abs maximum of the view direction vector
+	// Find abs maximum of the view direction vector
 	int max_dim = 0;
 	glm::vec3 v = glm::abs(v);
 	float val = v.x;
@@ -799,12 +751,11 @@ void SliceVolume() {
 		max_dim = 2;
 	}
 
-	//expand it a little bit
+	// Minor expansion
 	min_dist -= 0.0001f;
 	max_dist += 0.0001f;
 
-	//local variables to store the start, direction vectors, 
-	//lambda intersection values
+	// Local variables to store the start, direction vectors, lambda intersection values
 	glm::vec3 vecStart[12];
 	glm::vec3 vecDir[12];
 	float lambda[12];
@@ -820,22 +771,6 @@ void SliceVolume() {
 	//for all edges
 	for (int i = 0; i < 12; i++) {
 		//get the start position vertex by table lookup
-		// vecStart[i] = vertexList[edges[edgeList[max_index][i]][0]];
-
-		/*
-		vecStart[i] = glm::vec3(
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0]],
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0] + 1],
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 0] + 2]);
-
-		//get the direction by table lookup
-		glm::vec3 e2 = glm::vec3(
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1]],
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1] + 1],
-			cube_vertices[cube_edges[cube_indices[max_index * 3 + i] + 1] + 2]);
-
-		vecDir[i] = e2 - vecStart[i];
-		*/
 
 		vecStart[i] = vertexList[edges[edgeList[max_index][i]][0]];
 
@@ -969,7 +904,6 @@ GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
 	GLubyte *data = new GLubyte[size];			  // 8bit
 	if (!(fp = fopen(texture_path.c_str(), "rb"))) {
 		std::cout << "Error: opening .raw file failed" << std::endl;
-		//exit(EXIT_FAILURE);
 		return nullptr;
 	}
 	else {
@@ -977,7 +911,6 @@ GLubyte * load_3d_raw_data(std::string texture_path, glm::vec3 dimension) {
 	}
 	if (fread(data, sizeof(char), size, fp) != size) {
 		std::cout << "Error: read .raw file failed" << std::endl;
-		//exit(1);
 		return nullptr;
 	}
 	else {
