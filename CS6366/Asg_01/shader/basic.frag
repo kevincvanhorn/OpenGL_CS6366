@@ -56,13 +56,13 @@ void main(){
 		alpha = s3 + (s4-s3)*7.0f*(i-(3.0f/7.0f));
 	}
 	else if(i > 4.0f/7.0f && i <= 5.0f/7.0f){
-		alpha = s4 + (s5-s4)*7.0f*(i-(1.0f/7.0f));
+		alpha = s4 + (s5-s4)*7.0f*(i-(4.0f/7.0f));
 	}
 	else if(i > 5.0f/7.0f && i <= 6.0f/7.0f){
-		alpha = s5 + (s6-s5)*7.0f*(i-(1.0f/7.0f));
+		alpha = s5 + (s6-s5)*7.0f*(i-(5.0f/7.0f));
 	}
 	else if(i > 6.0f/7.0f && i <= 1.0f){
-		alpha = s6 + (s7-s6)*7.0f*(i-(1.0f/7.0f));
+		alpha = s6 + (s7-s6)*7.0f*(i-(6.0f/7.0f));
 	}
 	else{
 		alpha = 0.0f;
