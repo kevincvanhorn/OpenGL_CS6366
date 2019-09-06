@@ -18,6 +18,25 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\Animation.cpp" />
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\main.cpp" />
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\ObjectManager.cpp" />
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\Renderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Animation.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Camera.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Lighting.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Object.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\ObjectManager.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Renderer.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\basic.frag" />
+    <None Include="shader\basic.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7D49E59D-AEE4-46CF-80CC-2198092013A1}</ProjectGuid>
@@ -128,19 +147,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Asg01_Source\code\Camera.h" />
-    <ClInclude Include="..\..\Asg01_Source\code\PointLight.h" />
-    <ClInclude Include="..\..\Asg02_Source\Shader.h" />
-    <ClInclude Include="Globals.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\Asg02_Source\shader\basic.frag" />
-    <None Include="..\..\Asg02_Source\shader\basic.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\Asg01_Source\code\main.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
