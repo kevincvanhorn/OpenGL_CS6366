@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\Asg01_Source\Anim_01\ObjectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\Curve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Animation.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Asg01_Source\Anim_01\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Curve.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

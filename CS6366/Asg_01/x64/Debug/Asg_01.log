@@ -1,2 +1,14 @@
-﻿  Animation.cpp
+﻿  Renderer.cpp
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Shader.h(51,10): warning C4101:  'info_log': unreferenced local variable
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(79,1): warning C4267:  'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(173,1): warning C4305:  'argument': truncation from 'int' to 'T'
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(173,1): warning C4305:         with
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(173,1): warning C4305:         [
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(173,1): warning C4305:             T=float
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Object.h(173,1): warning C4305:         ]
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Renderer.cpp(325,24): warning C4244:  'initializing': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Renderer.cpp(372,60): warning C4267:  'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Renderer.cpp(382,60): warning C4267:  'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Renderer.cpp(387,60): warning C4267:  'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Renderer.cpp(394,56): warning C4267:  'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   Asg_01.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\CS6366\x64\Debug\Asg_01.exe

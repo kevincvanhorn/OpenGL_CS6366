@@ -52,7 +52,7 @@ public:
 
 	// Camera parameter initialization
 	Camera(
-		glm::vec3 position_ = glm::vec3(0, 1, 10),
+		glm::vec3 position_ = glm::vec3(0, 5, 15),
 		glm::vec3 front_ = glm::vec3(0, 0, -1),
 		glm::vec3 up_ = glm::vec3(0, 1, 0),
 		glm::vec3 right_ = glm::vec3(1, 0, 0),
@@ -89,31 +89,33 @@ public:
 
 	void process_keyboard(Camera_Movement direction, GLfloat delta_time)
 	{
-		GLfloat velocity = delta_time;
+		GLfloat move_velocity = delta_time * 10;
+		GLfloat rotate_velocity = delta_time * 50;
+
 		if (direction == FORWARD)
-			this->position += this->front * velocity;
+			this->position += this->front * move_velocity;
 		if (direction == BACKWARD)
-			this->position -= this->front * velocity;
+			this->position -= this->front * move_velocity;
 		if (direction == LEFT)
-			this->position -= this->right * velocity;
+			this->position -= this->right * move_velocity;
 		if (direction == RIGHT)
-			this->position += this->right * velocity;
+			this->position += this->right * move_velocity;
 		if (direction == UP)
-			this->position += this->up * velocity;
+			this->position += this->up * move_velocity;
 		if (direction == DOWN)
-			this->position -= this->up * velocity;
+			this->position -= this->up * move_velocity;
 		if (direction == ROTATE_X_UP)
-			rotate_x(velocity);
+			rotate_x(rotate_velocity);
 		if (direction == ROTATE_X_DOWN)
-			rotate_x(-velocity);
+			rotate_x(-rotate_velocity);
 		if (direction == ROTATE_Y_UP)
-			rotate_y(velocity);
+			rotate_y(rotate_velocity);
 		if (direction == ROTATE_Y_DOWN)
-			rotate_y(-velocity);
+			rotate_y(-rotate_velocity);
 		if (direction == ROTATE_Z_UP)
-			rotate_z(velocity);
+			rotate_z(rotate_velocity);
 		if (direction == ROTATE_Z_DOWN)
-			rotate_z(-velocity);
+			rotate_z(-rotate_velocity);
 	}
 
 	// Rotate specific angle along local camera system(LCS)
@@ -121,7 +123,7 @@ public:
 	{
 		glm::vec3 up = this->up;
 		glm::mat4 rotation_mat(1);
-		rotation_mat = glm::rotate(rotation_mat, angle, this->right);
+		rotation_mat = glm::rotate(rotation_mat, glm::radians(angle), this->right);
 		this->up = glm::normalize(glm::vec3(rotation_mat * glm::vec4(up, 1.0)));
 		this->front = glm::normalize(glm::cross(this->up, this->right));
 	}
@@ -130,7 +132,7 @@ public:
 	{
 		glm::vec3 front = this->front;
 		glm::mat4 rotation_mat(1);
-		rotation_mat = glm::rotate(rotation_mat, angle, this->up);
+		rotation_mat = glm::rotate(rotation_mat, glm::radians(angle), this->up);
 		this->front = glm::normalize(glm::vec3(rotation_mat * glm::vec4(front, 1.0)));
 		this->right = glm::normalize(glm::cross(this->front, this->up));
 	}
@@ -139,7 +141,7 @@ public:
 	{
 		glm::vec3 right = this->right;
 		glm::mat4 rotation_mat(1);
-		rotation_mat = glm::rotate(rotation_mat, angle, this->front);
+		rotation_mat = glm::rotate(rotation_mat, glm::radians(angle), this->front);
 		this->right = glm::normalize(glm::vec3(rotation_mat * glm::vec4(right, 1.0)));
 		this->up = glm::normalize(glm::cross(this->right, this->front));
 	}

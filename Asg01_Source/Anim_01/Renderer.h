@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -17,8 +18,7 @@
 #include "Camera.h"
 #include "Object.h"
 #include "Lighting.h"
-#include "Animation.h"
-#include "ObjectManager.h"
+#include "Curve.h"
 
 class Renderer
 {
@@ -29,17 +29,16 @@ public:
 
 	static Lighting* m_lightings;
 
-	static Animation* m_animation;
-
-	static ObjectManager* m_objectManager;
-
 	static nanogui::Screen* m_nanogui_screen;
 
 	std::vector<Object> obj_list;
 
+	static Curve* m_curve;
+	static Curve* m_curve_cat;
+
 	glm::vec4 background_color = glm::vec4(0.1,0.1,0.1,0.1);
 
-	bool is_scean_reset = true;
+	bool is_scene_reset = true;
 
 	std::string model_name;
 
@@ -58,16 +57,16 @@ public:
 	void display(GLFWwindow* window);
 	void run();
 
-	void load_models();
-	void draw_scene(Shader& shader);
-
 	void camera_move();
 
+	void load_models();
+
+	void draw_scene(Shader& shader);
 	void draw_object(Shader& shader, Object& object);
 
 	void bind_vaovbo(Object &cur_obj);
 
 	void setup_uniform_values(Shader& shader);
-	void scean_reset();
+	void scene_reset();
 };
 

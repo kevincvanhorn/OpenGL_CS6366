@@ -47,16 +47,16 @@ public:
 		const char* v_shader_code = vertex_code.c_str();
 		const char* f_shader_code = fragment_code.c_str();
 
-		GLuint vertex, fragement,geometry;
+		GLuint vertex, fragment,geometry;
 		GLchar info_log[512];
 		vertex = glCreateShader(GL_VERTEX_SHADER);
-		fragement = glCreateShader(GL_FRAGMENT_SHADER);
+		fragment = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(vertex, 1, &v_shader_code, NULL);
-		glShaderSource(fragement, 1, &f_shader_code, NULL);
+		glShaderSource(fragment, 1, &f_shader_code, NULL);
 		glCompileShader(vertex);
-		glCompileShader(fragement);
+		glCompileShader(fragment);
 		check_compile_error(vertex, "VERTEX");
-		check_compile_error(fragement, "FRAGMENT");
+		check_compile_error(fragment, "FRAGMENT");
 
 		if (geometry_shader_path != nullptr) {
 			const char* g_shader_code = geometry_code.c_str();
@@ -68,14 +68,14 @@ public:
 		
 		this->program = glCreateProgram();
 		glAttachShader(this->program, vertex);
-		glAttachShader(this->program, fragement);
+		glAttachShader(this->program, fragment);
 		if (geometry_shader_path != nullptr) {
 			glAttachShader(this->program, geometry);
 		}
 		glLinkProgram(this->program);
 		check_compile_error(this->program, "PROGRAM");
 		glDeleteShader(vertex);
-		glDeleteShader(fragement);
+		glDeleteShader(fragment);
 		if (geometry_shader_path != nullptr) {
 			glDeleteShader(geometry);
 		}

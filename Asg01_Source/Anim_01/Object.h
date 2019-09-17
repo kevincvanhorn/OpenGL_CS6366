@@ -7,12 +7,27 @@
 #include <iostream>
 #include <algorithm>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>	
+
+enum OBJ_TYPE
+{
+	OBJ_POINTS,
+	OBJ_TRIANGLES
+};
+
+enum RENDER_TYPE
+{
+	RENDER_POINTS,
+	RENDER_LINES,
+	RENDER_TRIANGLES
+};
 
 class Object
 {
+
 public:
 	struct Vertex {
 		// Position
@@ -54,6 +69,9 @@ public:
 	std::string obj_name;
 
 	GLuint vao, vbo;
+
+	OBJ_TYPE m_obj_type;
+	RENDER_TYPE m_render_type;
 
 public:
 	void load_obj(std::string obj_path)
@@ -165,10 +183,36 @@ public:
 
 	};
 
+	// Initialize object using obj file
 	Object(std::string obj_path) { 
 		this->m_obj_path = obj_path; 
 		load_obj(this->m_obj_path);
 		calculate_center();
+		m_obj_type = OBJ_TRIANGLES;
+		m_render_type = RENDER_TRIANGLES;
+	};
+	
+	// Initialize object using point array, can used to draw 
+	Object(std::vector<glm::vec3> points)
+	{
+		this->vao_vertices.clear();
+		this->veo_indices.clear();
+		this->indexed_faces.clear();
+
+		this->ori_positions.clear();
+		this->ori_normals.clear();
+		this->ori_texcoords.clear();
+		for (unsigned int i = 0; i < points.size(); i++)
+		{
+			glm::vec3 cur_point = points[i];
+			this->ori_positions.push_back(cur_point);
+			Vertex cur_vertex;
+			cur_vertex.Position = cur_point;
+			this->vao_vertices.push_back(cur_vertex);
+		}
+		calculate_center();
+		m_obj_type = OBJ_POINTS;
+		m_render_type = RENDER_POINTS;
 	};
 
 	~Object() {};

@@ -46,14 +46,14 @@ public:
 	void init() 
 	{
 		direction_light.status = true;
-		direction_light.direction = glm::vec3(0.0f, -1.0f, 0.0f);
-		direction_light.ambient = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
-		direction_light.diffuse = glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
+		direction_light.direction = glm::vec3(-1.0f, -1.0f, -1.0f);
+		direction_light.ambient = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+		direction_light.diffuse = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
 		direction_light.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 		point_light.status = true;
 		point_light.position = glm::vec3(1.2f, 1.0f, 2.0f);
-		point_light.ambient = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		point_light.ambient = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 		point_light.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		point_light.specular = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		point_light.constant = 1.0f;

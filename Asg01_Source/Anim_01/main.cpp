@@ -1,4 +1,3 @@
-#define GLM_ENABLE_EXPERIMENTAL
 #include "Renderer.h"
 
 int main() {

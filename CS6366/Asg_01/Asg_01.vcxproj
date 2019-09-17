@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Asg01_Source\Anim_01\Animation.cpp" />
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\Curve.cpp" />
     <ClCompile Include="..\..\Asg01_Source\Anim_01\main.cpp" />
     <ClCompile Include="..\..\Asg01_Source\Anim_01\ObjectManager.cpp" />
     <ClCompile Include="..\..\Asg01_Source\Anim_01\Renderer.cpp" />
@@ -27,6 +28,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Animation.h" />
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Camera.h" />
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Curve.h" />
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Lighting.h" />
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Object.h" />
     <ClInclude Include="..\..\Asg01_Source\Anim_01\ObjectManager.h" />
