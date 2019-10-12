@@ -4,6 +4,7 @@ Curve::Curve(bool bCatmullRomIn)
 {
 	num_points_per_segment_inv = 1 / (float)(num_points_per_segment);
 	bCatmullRom = bCatmullRomIn;
+
 }
 
 Curve::~Curve()
@@ -28,6 +29,17 @@ void Curve::init()
 	catmull_cmatrix[2] = glm::vec4(-3, 4, 1, 0);
 	catmull_cmatrix[3] = glm::vec4(1, -1, 0, 0);
 	catmull_cmatrix = tau*catmull_cmatrix;
+
+	this->control_points_quaternion = {
+		{0.13964   , 0.0481732 , 0.831429 , 0.541043 , },
+		{0.0509038 , -0.033869 , -0.579695, 0.811295 , },
+		{-0.502889 , -0.366766 , 0.493961 , 0.592445 , },
+		{-0.636    , 0.667177  , -0.175206, 0.198922 , },
+		{0.693492  , 0.688833  , -0.152595, -0.108237, },
+		{0.752155  , -0.519591 , -0.316988, 0.168866 , },
+		{0.542054  , 0.382705  , 0.378416 , 0.646269 , },
+		{0.00417342, -0.0208652, -0.584026, 0.810619   }
+	};
 }
 
 void Curve::calculate_curve()
@@ -36,7 +48,7 @@ void Curve::calculate_curve()
 		glm::vec3 p1_neg, p, p1_pos, p2_pos;
 		for (int i = 0; i < control_points_pos.size(); ++i) {
 			get_points(i, p1_neg, p, p1_pos, p2_pos);
-
+			
 			for (int u = 0; u < num_points_per_segment; ++u) {
 				curve_points_pos.emplace_back(catmull_rom(u * num_points_per_segment_inv, p1_neg, p, p1_pos, p2_pos));
 			}
@@ -56,10 +68,38 @@ void Curve::calculate_curve()
 	}
 }
 
+float Curve::GetTotalDistance()
+{
+	float totalDist = 0;
+	glm::vec3 prev = curve_points_pos[curve_points_pos.size()-1];
+	for (int i = 0; i < curve_points_pos.size(); ++i) {
+		totalDist += glm::length(curve_points_pos[i] - prev);
+		vTable.push_back(totalDist);
+		prev = curve_points_pos[i];
+	}
+
+	return totalDist;
+}
+
+void Curve::GetIndexPointFromDist(int& im1, int& i, const int& realDist, float& interp)
+{
+	float index = i;
+	im1 = (float)im1 / (float)num_points_per_segment;
+	i = im1 + 1;
+
+	float prev = num_points_per_segment*im1;
+	float next = num_points_per_segment*i;
+
+	interp = (index - prev) / (next - prev);
+
+	if (i >= control_points_pos.size())i = 0;
+}
+
 glm::vec3 Curve::catmull_rom(float u, const glm::vec3& p1_neg, const glm::vec3& p, const glm::vec3& p1_pos, const glm::vec3& p2_pos)
 {
 	glm::mat3x4 M(catmull_cmatrix*glm::transpose(glm::mat4x3(p1_neg, p, p1_pos, p2_pos)));
-	return glm::vec4(glm::vec4(pow(u, 3), pow(u, 2), u, 1)) * M;
+	glm::vec3 newPoint =  glm::vec4(glm::vec4(pow(u, 3), pow(u, 2), u, 1)) * M;
+	return newPoint;
 }
 
 int get_next_index(int index, int size, int delta) {

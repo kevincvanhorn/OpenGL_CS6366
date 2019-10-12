@@ -27,9 +27,6 @@ void Animation::reset()
 
 void Animation::rotateLocalX(float rot_degrees)
 {
-	//glm::vec3 localAxis_x = m_model_mat[0].xyz;
-	//m_model_mat = glm::rotate(m_model_mat, glm::radians(rot_degrees), localAxis_x);
-
 	glm::mat4 rotMatrix = glm::mat4();
 	rotMatrix = glm::rotate(rotMatrix, glm::radians(rot_degrees), glm::vec3(1, 0, 0));
 

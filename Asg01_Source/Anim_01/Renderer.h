@@ -19,6 +19,7 @@
 #include "Object.h"
 #include "Lighting.h"
 #include "Curve.h"
+#include "Aircraft_Animation.h"
 
 class Renderer
 {
@@ -51,6 +52,8 @@ public:
 	Renderer();
 	~Renderer();
 
+	static Aircraft_Animation* m_aircraft_animation;
+
 	void nanogui_init(GLFWwindow* window);
 	void init();
 
@@ -62,6 +65,8 @@ public:
 	void load_models();
 
 	void draw_scene(Shader& shader);
+	void draw_axis(Shader& shader, const glm::mat4 axis_obj_mat);
+
 	void draw_object(Shader& shader, Object& object);
 
 	void bind_vaovbo(Object &cur_obj);
