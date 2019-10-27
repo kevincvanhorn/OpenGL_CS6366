@@ -18,8 +18,7 @@
 #include "Camera.h"
 #include "Object.h"
 #include "Lighting.h"
-#include "Curve.h"
-#include "Aircraft_Animation.h"
+#include "Bone_Animation.h"
 
 class Renderer
 {
@@ -32,10 +31,9 @@ public:
 
 	static nanogui::Screen* m_nanogui_screen;
 
-	std::vector<Object> obj_list;
+	static Bone_Animation* m_bone_animation;
 
-	static Curve* m_curve;
-	static Curve* m_curve_cat;
+	std::vector<Object> obj_list;
 
 	glm::vec4 background_color = glm::vec4(0.1,0.1,0.1,0.1);
 
@@ -43,16 +41,14 @@ public:
 
 	std::string model_name;
 
-	GLfloat delta_time = 0.0;
-	GLfloat last_frame = 0.0;
+	float delta_time = 0.0;
+	float last_frame = 0.0;
 
 	static bool keys[1024];
 
 public:
 	Renderer();
 	~Renderer();
-
-	static Aircraft_Animation* m_aircraft_animation;
 
 	void nanogui_init(GLFWwindow* window);
 	void init();
@@ -65,9 +61,11 @@ public:
 	void load_models();
 
 	void draw_scene(Shader& shader);
-	void draw_axis(Shader& shader, const glm::mat4 axis_obj_mat);
-
 	void draw_object(Shader& shader, Object& object);
+
+	void draw_axis(Shader& shader, const glm::mat4 axis_obj_mat);
+	void draw_plane(Shader& shader);
+	void draw_bones(Shader& shader, Bone_Animation* m_bone_animation);
 
 	void bind_vaovbo(Object &cur_obj);
 

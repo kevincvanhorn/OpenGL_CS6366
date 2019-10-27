@@ -15,29 +15,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Asg01_Source\Anim_01\Animation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Asg01_Source\Anim_01\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Asg01_Source\Anim_01\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Asg01_Source\Anim_01\ObjectManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Asg01_Source\Anim_01\Curve.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Asg01_Source\Anim_01\Aircraft_Animation.cpp">
+    <ClCompile Include="..\..\Asg01_Source\Anim_01\Bone_Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Asg01_Source\Anim_01\Animation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -53,13 +41,7 @@
     <ClInclude Include="..\..\Asg01_Source\Anim_01\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Asg01_Source\Anim_01\ObjectManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Asg01_Source\Anim_01\Curve.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Asg01_Source\Anim_01\Aircraft_Animation.h">
+    <ClInclude Include="..\..\Asg01_Source\Anim_01\Bone_Animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

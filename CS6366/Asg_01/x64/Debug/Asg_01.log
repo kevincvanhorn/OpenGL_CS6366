@@ -1,5 +1,2 @@
-﻿  Aircraft_Animation.cpp
-C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Aircraft_Animation.h(18,16): warning C4305:  'initializing': truncation from 'double' to 'float'
-C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Aircraft_Animation.h(19,16): warning C4305:  'initializing': truncation from 'double' to 'float'
-C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\Asg01_Source\Anim_01\Aircraft_Animation.cpp(90,52): warning C4244:  'argument': conversion from 'float' to 'const int', possible loss of data
+﻿  Bone_Animation.cpp
   Asg_01.vcxproj -> C:\Users\Kevin VanHorn\Desktop\Graphics\Graphics\CS6366\x64\Debug\Asg_01.exe

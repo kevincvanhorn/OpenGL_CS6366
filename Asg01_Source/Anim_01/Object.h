@@ -63,6 +63,8 @@ public:
 	glm::vec3 obj_center;
 	
 	glm::vec4 obj_color = glm::vec4(0.7, 0.7, 0.7, 1.0);
+	glm::mat4 obj_mat = glm::mat4(1.0f);
+
 	GLfloat shininess = 32.0f;
 
 	std::string m_obj_path;
